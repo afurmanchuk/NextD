@@ -156,6 +156,7 @@ select eenc.PATID
       ,eenc.FACILITYID
 	  ,eenc.FACILITY_TYPE
 	  ,eprov.NPI
+	  
       ,case when eprov.NPI is null then null 
             else dense_rank() over (order by eprov.NPI) 
        end as NPI_analogue /*surrogate of NPI*/
@@ -191,7 +192,8 @@ select  enc.PATID
        ,enc.TAXONOMY 
        ,enc.NPI
        ,enc.PROVIDER_CATEGORY 
-	  ,enc.FACILITY_TYPE	         
+	   ,enc.FACILITY_TYPE
+	   ,enc.ENTITY_TYPE	         
 from NEXTD_ENCOUNTER_RDATE enc
 left join FinalStatTable1@nheronA1 pat
 on pat.PATID = enc.PATID
@@ -211,7 +213,8 @@ select enc.PATID,'|' as Pipe1
 	   ,enc.DISCHARGE_STATUS ,'|' as Pipe11
        ,enc.ENC_TYPE,'|' as Pipe12
        ,enc.FACILITYID,'|' as Pipe13
-	   ,enc.FACILITY_TYPE,'ENDALONAAND' as ENDOFLINE	    
+	   ,enc.FACILITY_TYPE,'|' as Pipe14
+	   ,enc.ENTITY_TYPE,'ENDALONAAND' as ENDOFLINE	    
 from NEXTD_ENCOUNTER;
 /****************************************************************************************************/
 /***************************************************************************************************/
