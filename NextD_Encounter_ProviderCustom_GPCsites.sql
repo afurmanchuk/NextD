@@ -206,15 +206,15 @@ select enc.PATID,'|' as Pipe1
        ,ADMIT_YEAR,'|' as Pipe4
        ,ADMIT_MONTH,'|' as Pipe5
        ,ADMIT_Days_from_FirstEncounter,'|' as Pipe6
-	   ,enc.ADMITTING_SOURCE ,'|' as Pipe7
+       ,ADMITTING_SOURCE ,'|' as Pipe7
        ,DISCHARGET_YEAR,'|' as Pipe8
        ,DISCHARGE_MONTH,'|' as Pipe9
        ,DISCHARGE_Days_from_FirstEncounter,'|' as Pipe10
-	   ,enc.DISCHARGE_STATUS ,'|' as Pipe11
-       ,enc.ENC_TYPE,'|' as Pipe12
-       ,enc.FACILITYID,'|' as Pipe13
-	   ,enc.FACILITY_TYPE,'|' as Pipe14
-	   ,enc.ENTITY_TYPE,'ENDALONAEND' as ENDOFLINE	    
+       ,DISCHARGE_STATUS ,'|' as Pipe11
+       ,ENC_TYPE,'|' as Pipe12
+       ,FACILITYID,'|' as Pipe13
+       ,FACILITY_TYPE,'|' as Pipe14
+       ,ENTITY_TYPE,'ENDALONAEND' as ENDOFLINE	    
 from NEXTD_ENCOUNTER;
 /****************************************************************************************************/
 /***************************************************************************************************/
