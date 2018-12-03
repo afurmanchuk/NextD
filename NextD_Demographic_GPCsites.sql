@@ -29,13 +29,12 @@
 /**************************************************************************/
 create table NEXTD_DEMOGRAPHIC as
 select pat.PATID
-      ,cast(to_char(ds.REAL_BIRTH_DATE,'YYYY') as INTEGER) BIRTH_DATE_YEAR
-      ,cast(to_char(ds.REAL_BIRTH_DATE ,'MM') as INTEGER) BIRTH_DATE_MONTH
-      ,ds.REAL_BIRTH_DATE - pat.FirstVisit as BIRTH_DELTA_DAYS
+      ,cast(to_char(ds.REAL_BIRTH_DATE,'YYYY') as INTEGER) BIRTH_YEAR
+      ,cast(to_char(ds.REAL_BIRTH_DATE ,'MM') as INTEGER) BIRTH_MONTH
+      ,ds.REAL_BIRTH_DATE - pat.FirstVisit as BIRTH_Days_from_FirstEncounter
       ,demo.SEX
       ,demo.RACE
       ,demo.HISPANIC
-	  ,demo.PAT_PREF_LANGUAGE_SPOKEN 
       ,case when i2b2.MARITAL_STATUS_CD in ('u','@') or i2b2.MARITAL_STATUS_CD is null then 'NI' /*combine the unknown category*/
             else upper(i2b2.MARITAL_STATUS_CD) end as MARITAL_STATUS /*KUMC - specific*/
 from date_unshifts ds 
@@ -49,7 +48,6 @@ on ds.PATIENT_NUM_I2B2 = i2b2.PATIENT_NUM
 /*16.291 seconds*/
 
 /*eyeball final table and make sure the format is IRB-approved*/
-select PATID,'|' as Pipe1,BIRTH_DATE_YEAR,'|' as Pipe1,BIRTH_DATE_MONTH,'|' as Pipe1,BIRTH_DATE_DELTA_DAYS,'|' as Pipe1,SEX,'|' as Pipe1,RACE,'|' as Pipe1,HISPANIC,'|' as Pipe1 ,PAT_PREF_LANGUAGE_SPOKEN,'|' as Pipe1 MARITAL_STATUS,'ENDALONAEND' as ENDOFLINE
- from NEXTD_DEMOGRAPHIC;
+select * from NEXTD_DEMOGRAPHIC;
 
 /*save local NEXTD_DEMOGRAPHIC.csv file*/
