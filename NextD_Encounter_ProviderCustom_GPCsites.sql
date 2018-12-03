@@ -47,9 +47,13 @@ with enc_with_age_realdate as (
 select enc.PATID
       ,enc.ENCOUNTERID
       ,enc.ADMIT_DATE+ds.days_shift as REAL_ADMIT_DATE
+	  ,enc.ADMITTING_SOURCE 
+	  ,enc.DISCHARGE_DATE+ds.days_shift as REAL_DISCHARGE_DATE
+	  ,enc.DISCHARGE_STATUS 
       ,enc.ENC_TYPE
       ,enc.FACILITYID
       ,enc.PROVIDERID
+	  ,enc.FACILITY_TYPE 
       ,round((enc.ADMIT_DATE - pat.BIRTH_DATE)/365.25,2) AS age_at_visit
 from /*provide current PCORNET_CDM.Encounter table here*/ "&&PCORNET_CDM".ENCOUNTER enc
 join /*provide current PCORNET_CDM.Demographic table here*/"&&PCORNET_CDM".DEMOGRAPHIC pat
@@ -60,9 +64,13 @@ on enc.PATID = ds.PATID
 select distinct PATID 
                ,ENCOUNTERID
                ,REAL_ADMIT_DATE
+			   ,ADMITTING_SOURCE
+			   ,REAL_DISCHARGE_DATE
+			   ,DISCHARGE_STATUS
                ,ENC_TYPE
                ,FACILITYID
                ,PROVIDERID
+			   ,FACILITY_TYPE
 from enc_with_age_realdate
 where age_at_visit between 18 and 89 and /*age restriction*/
       REAL_ADMIT_DATE between Date '2010-01-01' and CURRENT_DATE /*time restriction*/   
@@ -78,7 +86,7 @@ create table CDM_ENCI2B2_CW_EPIC as
 select distinct cdm.PROVIDERID
                ,cdm.PATID
                ,cdm.ENCOUNTERID
-               ,cw.ENCOUNTER_NUM
+               ,cw.ENCOUNTER_NUM 
 from /*provide encounter_mapping_backup table here - KUMC specific*/ nheron_backup.encounter_mapping_backup@KUMC encmb
 join Eligible_Encounters cdm
 on encmb.ENCOUNTER_NUM = cdm.ENCOUNTERID 
@@ -140,8 +148,14 @@ select eenc.PATID
       ,eenc.ENCOUNTERID
       ,eenc.PROVIDERID
       ,eenc.ADMIT_DATE + ds.days_shift REAL_ADMIT_DATE
+	  ,eenc.ADMITTING_SOURCE 
+	  ,eenc.DISCHARGE_DATE+ds.days_shift as REAL_DISCHARGE_DATE
+	  ,eenc.DISCHARGE_STATUS 
+	  ,eenc.FACILITY_TYPE
       ,eenc.ENC_TYPE
       ,eenc.FACILITYID
+	  ,eenc.FACILITY_TYPE
+	  ,eprov.NPI
       ,case when eprov.NPI is null then null 
             else dense_rank() over (order by eprov.NPI) 
        end as NPI_analogue /*surrogate of NPI*/
@@ -166,48 +180,64 @@ select  enc.PATID
        ,cast(to_char(enc.REAL_ADMIT_DATE,'YYYY') as INTEGER) ADMIT_YEAR
        ,cast(to_char(enc.REAL_ADMIT_DATE,'MM') as INTEGER) ADMIT_MONTH
        ,enc.REAL_ADMIT_DATE - pat.FirstVisit as ADMIT_Days_from_FirstEncounter
+	   ,enc.ADMITTING_SOURCE 
+       ,cast(to_char(enc.REAL_DISCHARGE_DATE,'YYYY') as INTEGER) DISCHARGET_YEAR
+       ,cast(to_char(enc.REAL_DISCHARGE_DATE,'MM') as INTEGER) DISCHARGE_MONTH
+       ,enc.REAL_DISCHARGE_DATE - pat.FirstVisit as DISCHARGE_Days_from_FirstEncounter
+	   ,enc.DISCHARGE_STATUS 
        ,enc.ENC_TYPE
        ,enc.FACILITYID
        ,enc.NPI_analogue
        ,enc.TAXONOMY 
-       ,enc.ENTITY_TYPE
+       ,enc.NPI
        ,enc.PROVIDER_CATEGORY 
+	  ,enc.FACILITY_TYPE	         
 from NEXTD_ENCOUNTER_RDATE enc
 left join FinalStatTable1@nheronA1 pat
 on pat.PATID = enc.PATID
 ; /*393.82 seconds*/
 
 /*eyeball final table and make sure the format is IRB-approved*/
-select * from NEXTD_ENCOUNTER;
-
-/*save local NEXTD_ENCOUNTER.csv file*/
+select enc.PATID,'|' as Pipe1
+       ,enc.ENCOUNTERID,'|' as Pipe2
+       ,enc.PROVIDERID,'|' as Pipe3
+       ,ADMIT_YEAR,'|' as Pipe4
+       ,ADMIT_MONTH,'|' as Pipe5
+       ,ADMIT_Days_from_FirstEncounter,'|' as Pipe6
+	   ,enc.ADMITTING_SOURCE ,'|' as Pipe7
+       ,DISCHARGET_YEAR,'|' as Pipe8
+       ,DISCHARGE_MONTH,'|' as Pipe9
+       ,DISCHARGE_Days_from_FirstEncounter,'|' as Pipe10
+	   ,enc.DISCHARGE_STATUS ,'|' as Pipe11
+       ,enc.ENC_TYPE,'|' as Pipe12
+       ,enc.FACILITYID,'|' as Pipe13
+	   ,enc.FACILITY_TYPE,'ENDALONAAND' as ENDOFLINE	    
+from NEXTD_ENCOUNTER;
 /****************************************************************************************************/
-
-
 /***************************************************************************************************/
 /*The following checks are optional*/
 /*Some additional quality-assurance checks*/
 /*check1 - Is provider category complete?*/
-select distinct PROVIDER_CATEGORY from NEXTD2_ENCOUNTER;
+--select distinct PROVIDER_CATEGORY from NEXTD2_ENCOUNTER;
 
-/*check2 - overall summary*/
-select count(distinct PATID) pat_cnt, 
-       count(distinct ENCOUNTERID) enc_cnt, 
-       count(distinct NPI_analogue) prov_cnt,
-       sum(case when PROVIDERID is null then 1 else 0 end) prov_null
-from NEXTD2_ENCOUNTER;
+--/*check2 - overall summary*/
+--select count(distinct PATID) pat_cnt, 
+--       count(distinct ENCOUNTERID) enc_cnt, 
+--       count(distinct NPI_analogue) prov_cnt,
+--       sum(case when PROVIDERID is null then 1 else 0 end) prov_null
+--from NEXTD2_ENCOUNTER;
 
-/*check3 - available data summary*/
-select count(distinct PATID) pat_cnt,
-       count(distinct ENCOUNTERID) enc_cnt, 
-       count(distinct NPI_analogue) prov_cnt 
-from NEXTD2_ENCOUNTER where NPI_analogue is not null;
+--/*check3 - available data summary*/
+--select count(distinct PATID) pat_cnt,
+--       count(distinct ENCOUNTERID) enc_cnt, 
+--       count(distinct NPI_analogue) prov_cnt 
+--from NEXTD2_ENCOUNTER where NPI_analogue is not null;
 
-/*check4 - missing data summary*/
-select ENC_TYPE, FACILITYID, 
-       count(distinct ENCOUNTERID) enc_cnt
-from NEXTD2_ENCOUNTER
-where NPI_analogue is not null
-group by ENC_TYPE, FACILITYID
-order by enc_cnt desc
-;
+--/*check4 - missing data summary*/
+--select ENC_TYPE, FACILITYID, 
+--       count(distinct ENCOUNTERID) enc_cnt
+--from NEXTD2_ENCOUNTER
+--where NPI_analogue is not null
+--group by ENC_TYPE, FACILITYID
+--order by enc_cnt desc
+--;
