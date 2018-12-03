@@ -214,7 +214,7 @@ select enc.PATID,'|' as Pipe1
        ,enc.ENC_TYPE,'|' as Pipe12
        ,enc.FACILITYID,'|' as Pipe13
 	   ,enc.FACILITY_TYPE,'|' as Pipe14
-	   ,enc.ENTITY_TYPE,'ENDALONAAND' as ENDOFLINE	    
+	   ,enc.ENTITY_TYPE,'ENDALONAEND' as ENDOFLINE	    
 from NEXTD_ENCOUNTER;
 /****************************************************************************************************/
 /***************************************************************************************************/
