@@ -127,19 +127,19 @@ on pat.PATID = enc.PATID
 ; /*393.82 seconds*/
 
 /*eyeball final table and make sure the format is IRB-approved*/
-select PATID
-       ,ENCOUNTERID
-       ,PROVIDERID
-       ,ADMIT_YEAR
-       ,ADMIT_MONTH
-       ,ADMIT_Days_from_FirstEncounter
-	   ,ADMITTING_SOURCE
-	   ,DISCHARGE_YEAR
-       ,DISCHARGE_MONTH
-       ,DISCHARGE_Days_from_FirstEncounter
-       ,ENC_TYPE
-       ,FACILITYID
-	   ,FACILITY_TYPE
+select PATID,'|' as Pipe1
+       ,ENCOUNTERID,'|' as Pipe2
+       ,PROVIDERID,'|' as Pipe3
+       ,ADMIT_YEAR,'|' as Pipe4
+       ,ADMIT_MONTH,'|' as Pipe5
+       ,ADMIT_Days_from_FirstEncounter,'|' as Pipe6
+       ,ADMITTING_SOURCE,'|' as Pipe7
+       ,DISCHARGE_YEAR,'|' as Pipe8
+       ,DISCHARGE_MONTH,'|' as Pipe9
+       ,DISCHARGE_Days_from_FirstEncounter,'|' as Pipe10
+       ,ENC_TYPE,'|' as Pipe11
+       ,FACILITYID,'|' as Pipe12
+       ,FACILITY_TYPE,'ENDALONAEND' as ENDOFLINE
 from NEXTD2_ENCOUNTER;
 
 /*save local NEXTD_ENCOUNTER.csv file*/
