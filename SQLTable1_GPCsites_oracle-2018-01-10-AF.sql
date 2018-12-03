@@ -1138,51 +1138,51 @@ SELECT v.PATID
 Use "|" symbol as field terminator and
 "ENDALONAEND" as row terminator. */
 
--- If your site is only to return YYYY-MM for dates make sure your export formats FinalStatTable1 correctly
-
 select [PATID]
-      ,year(NextD_first_visit) as FirstVisit_YEAR, '|' as Pipe
-      ,month(NextD_first_visit) as FirstVisit_MONTH, '|' as Pipe
-      ,[NumerOfVisits], '|' as Pipe
-      ,year([DEATH_DATE]) as DEATH_DATE_YEAR
-	  ,month([DEATH_DATE]) as 
-	  ,datediff(day,NextD_first_visit,[DEATH_DATE]) as  
-      ,year([Pregnancy1_date]) as
-	  ,month([Pregnancy1_date]) as
-	  ,datediff(day,NextD_first_visit,[Pregnancy1_date]) as
-      ,year([Pregnancy2_date]) as
-	  ,month([Pregnancy2_date]) as
-	  ,datediff(day,NextD_first_visit,[Pregnancy2_date]) as
-      ,year([Pregnancy3_date]) as
-	  ,month([Pregnancy3_date]) as
-	  ,datediff(day,NextD_first_visit,[Pregnancy3_date]) as
-      ,year([Pregnancy4_date]) as
-	  ,month([Pregnancy4_date]) as
-	  ,datediff(day,NextD_first_visit,[Pregnancy4_date]) as
-      ,year([Pregnancy5_date]) as
-	  ,month([Pregnancy5_date]) as
-	  ,datediff(day,NextD_first_visit,[Pregnancy5_date]) as
-      ,year([Pregnancy6_date]) as
-	  ,month([Pregnancy6_date]) as
-	  ,datediff(day,NextD_first_visit,[Pregnancy6_date]) as
-      ,year([Pregnancy7_date]) as
-	  ,month([Pregnancy7_date]) as
-	  ,datediff(day,NextD_first_visit,[Pregnancy7_date]) as
-      ,year([Pregnancy8_date]) as
-	  ,month([Pregnancy8_date]) as
-	  ,datediff(day,NextD_first_visit,[Pregnancy8_date]) as
-      ,year([Pregnancy9_date]) as
-	  ,month([Pregnancy9_date]) as
-	  ,datediff(day,NextD_first_visit,[Pregnancy9_date]) as
-      ,year([Pregnancy10_date]) as
-	  ,month([Pregnancy10_date]) as
-	  ,datediff(day,NextD_first_visit,[Pregnancy10_date]) as
-      ,year(DM_Onsetdates) as
-	  ,month(DM_Onsetdates) as
-	  ,datediff(day,NextD_first_visit,DM_OnsetDates) as
-      ,year([BIRTH_DATE]) as
-	  ,month([BIRTH_DATE]) as
-	  ,datediff(day,NextD_first_visit,[BIRTH_DATE]) as
+      ,year(NextD_first_visit) as FirstVisit_YEAR, '|' as Pipe1
+      ,month(NextD_first_visit) as FirstVisit_MONTH, '|' as Pipe2
+      ,[NumerOfVisits], '|' as Pipe3
+      ,year([DEATH_DATE]) as DEATH_DATE_YEAR, '|' as Pipe4
+      ,month([DEATH_DATE]) as DEATH_DATE_MONTH, '|' as Pipe5
+      ,datediff(dd,NextD_first_visit,[DEATH_DATE]) as DEATH_DATE_DELTA_DAYS, '|' as Pipe6
+      ,year([Pregnancy1_date]) as Pregnancy_date_YEAR, '|' as Pipe7
+      ,month([Pregnancy1_date]) as Pregnancy_date_MONTH, '|' as Pipe8
+      ,datediff(dd,NextD_first_visit,[Pregnancy1_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe9
+      ,year([Pregnancy2_date]) as Pregnancy_date_YEAR, '|' as Pipe10
+      ,month([Pregnancy2_date]) as Pregnancy_date_MONTH, '|' as Pipe11
+      ,datediff(dd,NextD_first_visit,[Pregnancy2_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe12
+      ,year([Pregnancy3_date]) as Pregnancy_date_YEAR, '|' as Pipe13
+      ,month([Pregnancy3_date]) as Pregnancy_date_MONTH, '|' as Pipe14
+      ,datediff(dd,NextD_first_visit,[Pregnancy3_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe15
+      ,year([Pregnancy4_date]) as Pregnancy_date_YEAR, '|' as Pipe16
+      ,month([Pregnancy4_date]) as Pregnancy_date_MONTH, '|' as Pipe17
+      ,datediff(dd,NextD_first_visit,[Pregnancy4_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe18
+      ,year([Pregnancy5_date]) as Pregnancy_date_YEAR, '|' as Pipe19
+      ,month([Pregnancy5_date]) as Pregnancy_date_MONTH, '|' as Pipe20
+      ,datediff(dd,NextD_first_visit,[Pregnancy5_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe21
+      ,year([Pregnancy6_date]) as Pregnancy_date_YEAR, '|' as Pipe22
+      ,month([Pregnancy6_date]) as Pregnancy_date_MONTH, '|' as Pipe23
+      ,datediff(dd,NextD_first_visit,[Pregnancy6_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe24
+      ,year([Pregnancy7_date]) as Pregnancy_date_YEAR, '|' as Pipe25
+      ,month([Pregnancy7_date]) as Pregnancy_date_MONTH, '|' as Pipe26
+      ,datediff(dd,NextD_first_visit,[Pregnancy7_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe27
+      ,year([Pregnancy8_date]) as Pregnancy_date_YEAR, '|' as Pipe28
+      ,month([Pregnancy8_date]) as Pregnancy_date_MONTH, '|' as Pipe29
+      ,datediff(dd,NextD_first_visit,[Pregnancy8_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe30
+      ,year([Pregnancy9_date]) as Pregnancy_date_YEAR, '|' as Pipe31
+      ,month([Pregnancy9_date]) as Pregnancy_date_MONTH, '|' as Pipe32
+      ,datediff(dd,NextD_first_visit,[Pregnancy9_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe33
+      ,year([Pregnancy10_date]) as Pregnancy_date_YEAR, '|' as Pipe34
+      ,month([Pregnancy10_date]) as Pregnancy_date_MONTH, '|' as Pipe35
+      ,datediff(dd,NextD_first_visit,[Pregnancy10_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe
+      ,year(DM_Onsetdates) as DM_OnsetDates_YEAR, '|' as Pipe36
+      ,month(DM_Onsetdates) as DM_OnsetDates_MONTH, '|' as Pipe37
+      ,datediff(dd,NextD_first_visit,DM_OnsetDates) as DM_OnsetDates_DELTA_DAYS, '|' as Pipe38
+      ,year([BIRTH_DATE]) as BIRTH_DATE_YEAR, '|' as Pipe39
+      ,month([BIRTH_DATE]) as BIRTH_DATE_MONTH, '|' as Pipe40
+      ,datediff(dd,NextD_first_visit,[BIRTH_DATE]) as BIRTH_DATE_DELTA_DAYS, '|' as Pipe41
+      ,EstablishedPatientFlag, 'ENDALONAEND' as ENDOFLINE				      
+FROM FinalStatTable1;
 
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
