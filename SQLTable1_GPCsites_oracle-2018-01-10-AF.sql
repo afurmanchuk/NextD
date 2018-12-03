@@ -4,7 +4,7 @@
 -----   In case of questions, please, contact MCW or NU via astoddard@mcw.edu or                          -----
 -----   alona.furmanchuk@northwestern.edu, correspondingly.                                               -----
 -----																				                      -----
------   All changes to this version (possibly made in future) will be listed                              ----- 
+-----  These changes modifications from the version listed                                                ----- 
 -----  at https://github.com/kumc-bmi/nextd-study-support/commit/72a8ffc6bf63539152de16d75cf054cc42f01411 -----
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
