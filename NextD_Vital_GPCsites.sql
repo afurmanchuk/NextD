@@ -94,7 +94,7 @@ select vo.PATID
       ,vo.VITALID
       ,cast(to_char(vo.REAL_MEASURE_DATE,'YYYY') as INTEGER) MEASURE_YEAR
       ,cast(to_char(vo.REAL_MEASURE_DATE,'MM') as INTEGER) MEASURE_MONTH
-      ,vo.REAL_MEASURE_DATE - fst.FirstVisit as MEAS_Days_from_FirstEncounter
+      ,vo.REAL_MEASURE_DATE - fst.FirstVisit as DELTA_Days_from_FirstEncounter
       ,vo.HT
       ,vo.WT
       ,vo.SYSTOLIC
@@ -104,6 +104,21 @@ from FinalStatTable1 fst
 left join vital_orig vo
 on vo.PATID = fst.PATID
 ; 
+
+select PATID,'|' as Pipe1
+      ,ENCOUNTERID,'|' as Pipe2
+      ,VITALID,'|' as Pipe3
+      ,MEASURE_YEAR,'|' as Pipe4
+      ,MEASURE_MONTH,'|' as Pipe5
+      , DELTA_Days_from_FirstEncounter,'|' as Pipe6
+      ,HT,'|' as Pipe7
+      ,WT,'|' as Pipe8
+      ,SYSTOLIC,'|' as Pipe9
+      ,DIASTOLIC,'|' as Pipe10
+      ,SMOKING,'ENDALONAEND' as ENDOFLINE
+from NEXTD_VITAL
+; 
+
 
 ------------------------------------------------
 /* Save #NextD_VITAL as csv file. 
