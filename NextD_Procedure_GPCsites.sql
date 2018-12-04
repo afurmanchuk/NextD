@@ -58,13 +58,22 @@ select enc4.PATID
       ,px.PX
       ,px.PX_TYPE
       ,px.PX_SOURCE
+	  ,px.PPX
+	  ,px.PX_DATE
+	  ,cast(to_char(px.PX_DATE + ds.days_shift),'YYYY') as INTEGER)  as PX_YEAR
+	  ,cast(to_char(px.PX_DATE + ds.days_shift),'MM') as INTEGER) as  PX_MONTH
+	  ,(px.PX_DATE + ds.days_shift) - pat.FirstVisit as PX_Days_from_FirstEncounter
       ,enc4.ENC_TYPE
       ,enc4.ADMIT_YEAR
       ,enc4.ADMIT_MONTH
       ,enc4.ADMIT_Days_from_FirstEncounter
 from NEXTD_ENCOUNTER enc4
 join /*provide current PCORNET_CDM.Procedures table here*/ "&&PCORNET_CDM".PROCEDURES px
-on enc4.ENCOUNTERID = px.ENCOUNTERID           
+on enc4.ENCOUNTERID = px.ENCOUNTERID       
+left join /*date_unshifts table - created by NextD_Date_Recovery.sql*/ date_unshifts ds
+on enc4.PATID = ds.PATID 
+left join FinalStatTable1 fst
+on enc4.PATID = fst.PATID  
 ; 
 
 ------------------------------------------------
@@ -72,3 +81,18 @@ on enc4.ENCOUNTERID = px.ENCOUNTERID
 Use "|" symbol as field terminator and 
 "ENDALONAEND" as row terminator. */ 
 -------------------------------------------------
+select PATID,'|' as Pipe1
+      ,ENCOUNTERID,'|' as Pipe2
+      ,PROCEDURESID,'|' as Pipe3
+      ,PX,'|' as Pipe4
+      ,PX_TYPE,'|' as Pipe5
+      ,PX_SOURCE,'|' as Pipe6
+	  ,PPX,'|' as Pipe7
+	  ,PX_YEAR,'|' as Pipe8
+	  ,PX_MONTH,'|' as Pipe9
+	  ,PX_Days_from_FirstEncounter,'|' as Pipe10
+      ,ENC_TYPE,'|' as Pipe11
+      ,ADMIT_YEAR,'|' as Pipe12
+      ,ADMIT_MONTH,'|' as Pipe13
+      ,ADMIT_Days_from_FirstEncounter,'ENDALONAEND' as ENDOFLINE
+from NEXTD_PROCEDURES
