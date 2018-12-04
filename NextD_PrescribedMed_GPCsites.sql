@@ -31,6 +31,8 @@ select /*+index(fst FinalStatTable1_PAT_IDX)*/
       ,pmed.PRESCRIBINGID
       ,pmed.RXNORM_CUI
       ,pmed.RX_ORDER_DATE
+	  ,pmed.RX_START_DATE
+	  ,pmed.RX_END_DATE
       ,pmed.RX_PROVIDERID
       ,pmed.RX_DAYS_SUPPLY
       ,pmed.RX_REFILLS
@@ -79,7 +81,9 @@ select pmed.PATID
       ,pmed.ENCOUNTERID
       ,pmed.PRESCRIBINGID
       ,pmed.RXNORM_CUI
-      ,pmed.RX_ORDER_DATE +ds.days_shift as REAL_RX_ORDER_DATE
+      ,pmed.RX_ORDER_DATE + ds.days_shift as REAL_RX_ORDER_DATE
+	  ,pmed.RX_START_DATE + ds.days_shift as REAL_RX_START_DATE
+	  ,pmed.RX_END_DATE + ds.days_shift as REAL_RX_END_DATE
       ,pmed.RX_PROVIDERID /*the same as Encounter ProviderID?*/
       ,pmed.RX_DAYS_SUPPLY
       ,pmed.RX_REFILLS
@@ -113,6 +117,8 @@ select pmedrd.PATID
       ,pmedrd.PRESCRIBINGID
       ,pmedrd.RXNORM_CUI
       ,pmedrd.REAL_RX_ORDER_DATE
+	  ,pmedrd.REAL_RX_START_DATE
+	  ,pmedrd.REAL_RX_END_DATE
       ,pmedrd.RX_PROVIDERID
       ,pmedrd.RX_DAYS_SUPPLY
       ,pmedrd.RX_REFILLS
@@ -134,6 +140,12 @@ select fst.PATID
       ,cast(to_char(erx.REAL_RX_ORDER_DATE,'YYYY') as INTEGER) RX_ORDER_YEAR
       ,cast(to_char(erx.REAL_RX_ORDER_DATE,'MM') as INTEGER) RX_ORDER_MONTH
       ,erx.REAL_RX_ORDER_DATE - fst.FirstVisit as RX_ORDER_Days_from_FirstEnc
+      ,cast(to_char(erx.REAL_RX_START_DATE,'YYYY') as INTEGER) RX_START_YEAR
+      ,cast(to_char(erx.REAL_RX_START_DATE,'MM') as INTEGER) RX_START_MONTH
+      ,erx.REAL_RX_START_DATE - fst.FirstVisit as RX_START_Days_from_FirstEnc
+      ,cast(to_char(erx.REAL_RX__END_DATE,'YYYY') as INTEGER) RX_END_YEAR
+      ,cast(to_char(erx.REAL_RX__ENDR_DATE,'MM') as INTEGER) RX_END_MONTH
+      ,erx.REAL_RX__END_DATE - fst.FirstVisit as RX_END_Days_from_FirstEnc
       ,erx.RX_PROVIDERID
       ,erx.RX_DAYS_SUPPLY
       ,erx.RX_REFILLS
@@ -148,6 +160,27 @@ on erx.PATID = fst.PATID
  Use "|" symbol as field terminator and
  "ENDALONAEND" as row terminator. */
  
+ select PATID,'|' as Pipe1
+      ,ENCOUNTERID,'|' as Pipe2
+      ,PRESCRIBINGID,'|' as Pipe3
+      ,RXNORM_CUI,'|' as Pipe4
+      ,RX_ORDER_YEAR,'|' as Pipe5
+      ,RX_ORDER_MONTH,'|' as Pipe6
+      ,RX_ORDER_Days_from_FirstEnc,'|' as Pipe7
+      ,RX_START_YEAR,'|' as Pipe8
+      ,RX_START_MONTH,'|' as Pipe9
+      ,RX_START_Days_from_FirstEnc,'|' as Pipe10
+      ,RX_END_YEAR,'|' as Pipe11
+      ,RX_END_MONTH,'|' as Pipe12
+      ,RX_END_Days_from_FirstEnc,'|' as Pipe13
+      ,RX_PROVIDERID,'|' as Pipe14
+      ,RX_DAYS_SUPPLY,'|' as Pipe15
+      ,RX_REFILLS,'|' as Pipe16
+      ,RX_BASIS,'|' as Pipe17
+      ,RAW_RX_MED_NAME,'ENDALONAEND' as ENDOFLINE 
+from NEXTD_PRECSRIBING
+
+
  /*purge intermediate tables*/
 drop table cdm_prescribing purge;
 drop table cdm_demographic purge;
