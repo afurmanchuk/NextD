@@ -94,8 +94,10 @@ select /*+leading(c,l,fst)*/
       ,l.LAB_RESULT_CM_ID
       ,l.LAB_ORDER_DATE
       ,l.SPECIMEN_DATE
+	  ,l.SPECIMEN_SOURCE
       ,l.LAB_LOINC
       ,l.LAB_PX_TYPE
+	  ,l.RESULT_QUAL
       ,l.RESULT_NUM
       ,l.RESULT_UNIT
       ,l.RESULT_MODIFIER
@@ -146,8 +148,10 @@ select l.PATID
       ,l.LAB_RESULT_CM_ID
       ,l.LAB_ORDER_DATE + ds.days_shift as REAL_LAB_ORDER_DATE
       ,l.SPECIMEN_DATE + ds.days_shift as REAL_SPECIMEN_DATE 
+	  ,l.SPECIMEN_SOURCE
       ,l.LAB_LOINC
       ,l.LAB_PX_TYPE
+	  ,l.RESULT_QUAL
       ,l.RESULT_NUM
       ,l.RESULT_UNIT
       ,l.RESULT_MODIFIER
@@ -183,8 +187,10 @@ select lrd.PATID
       ,lrd.LAB_RESULT_CM_ID
       ,lrd.REAL_LAB_ORDER_DATE
       ,lrd.REAL_SPECIMEN_DATE 
+	  ,lrd.SPECIMEN_SOURCE
       ,lrd.LAB_LOINC
       ,lrd.LAB_PX_TYPE
+	  ,lrd.RESULT_QUAL
       ,lrd.RESULT_NUM
       ,lrd.RESULT_UNIT
       ,lrd.RESULT_MODIFIER
@@ -209,8 +215,10 @@ select fst.PATID
       ,cast(to_char(el.REAL_SPECIMEN_DATE ,'YYYY') as INTEGER) SPECIMEN_YEAR
       ,cast(to_char(el.REAL_SPECIMEN_DATE ,'MM') as INTEGER) SPECIMEN_MONTH
       ,el.REAL_SPECIMEN_DATE  - fst.FirstVisit as SPECIMEN_Days_from_FirstEnc
+	  ,el.SPECIMEN_SOURCE
       ,el.LAB_LOINC
       ,el.LAB_PX_TYPE
+	  ,el.RESULT_QUAL
       ,el.RESULT_NUM
       ,el.RESULT_UNIT
       ,el.RESULT_MODIFIER
@@ -228,6 +236,30 @@ on el.PATID = fst.PATID
  Use "|" symbol as field terminator and
  "ENDALONAEND" as row terminator. */
  
+select PATID,'|' as Pipe1
+      ,ENCOUNTERID,'|' as Pipe2
+      ,LAB_RESULT_CM_ID,'|' as Pipe3
+      ,LAB_ORDER_YEAR,'|' as Pipe4
+      ,LAB_ORDER_MONTH,'|' as Pipe5
+      ,LAB_ORDER_Days_from_FirstEnc,'|' as Pipe6
+      ,SPECIMEN_YEAR,'|' as Pipe7
+      ,SPECIMEN_MONTH,'|' as Pipe8
+      ,SPECIMEN_Days_from_FirstEnc,'|' as Pipe9
+	  ,SPECIMEN_SOURCE,'|' as Pipe10
+      ,LAB_LOINC,'|' as Pipe11
+      ,LAB_PX_TYPE,'|' as Pipe12
+	  ,RESULT_QUAL,'|' as Pipe13
+      ,RESULT_NUM,'|' as Pipe114
+      ,RESULT_UNIT,'|' as Pipe15
+      ,RESULT_MODIFIER,'|' as Pipe16
+      ,RESULT_LOC,'|' as Pipe17
+      ,RAW_RESULT,'|' as Pipe18
+      ,RAW_LAB_NAME,'|' as Pipe19
+      ,LAB_NAME,'EMDALONAEND' as ENDOFLINE
+from NEXTD_LABS
+
+
+
 /*purge intermediate tables*/
 drop table cdm_labs purge;
 drop table cdm_demographic purge;
