@@ -106,3 +106,17 @@ on dxo.PATID = fst.PATID
 Use "|" symbol as field terminator and 
 "ENDALONAEND" as row terminator. */ 
 -------------------------------------------------
+
+select PATID,'|' as Pipe1
+      ,ENCOUNTERID,'|' as Pipe2
+      ,DIAGNOSISID,'|' as Pipe3
+      ,DX,'|' as Pipe4
+      ,PDX,'|' as Pipe5
+      ,DX_TYPE,'|' as Pipe6
+      ,DX_SOURCE,'|' as Pipe7
+      ,DX_ORIGIN,'|' as Pipe8
+      ,ENC_TYPE,'|' as Pipe9
+      ,ADMIT_YEAR,'|' as Pipe10
+      ,ADMIT_MONTH,'|' as Pipe11
+      ,ADMIT_Days_from_FirstEncounter,'ENDALONAEND' as ENDOFLINE
+from NEXTD_DIAGNOSES
