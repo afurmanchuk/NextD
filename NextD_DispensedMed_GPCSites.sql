@@ -26,6 +26,7 @@ create table cdm_dispensing as
 select /*+index(fst FinalStatTable1_PAT_IDX)*/
        dmed.PATID
       ,dmed.DISPENSINGID
+	  ,dmed.PRESCRIBINGID
       ,dmed.NDC
       ,dmed.DISPENSE_DATE
       ,dmed.DISPENSE_SUP
@@ -72,6 +73,7 @@ unpivot
 create table dmed_with_age_realdate as
 select dmed.PATID
       ,dmed.DISPENSINGID
+	  ,dmed.PRESCRIBINGID
       ,dmed.NDC
       ,dmed.DISPENSE_DATE + ds.days_shift as REAL_DISPENSE_DATE
       ,dmed.DISPENSE_SUP
@@ -102,6 +104,7 @@ where dmedrd.age_at_event between 18 and 89 and
 )
 select dmedrd.PATID
       ,dmedrd.DISPENSINGID
+	  ,dmedrd.PRESCRIBINGID
       ,dmedrd.NDC
       ,dmedrd.REAL_DISPENSE_DATE
       ,dmedrd.DISPENSE_SUP
@@ -119,6 +122,7 @@ create table NEXTD_DISPENSING as
 --time blinding
 select fst.PATID
       ,erx.DISPENSINGID
+	  ,erx.PRESCRIBINGID
       ,erx.NDC
       ,cast(to_char(erx.REAL_DISPENSE_DATE,'YYYY') as INTEGER) DISPENSE_YEAR
       ,cast(to_char(erx.REAL_DISPENSE_DATE,'MM') as INTEGER) DISPENSE_MONTH
@@ -134,7 +138,20 @@ on erx.PATID = fst.PATID
 /*save local NEXTD_DISPENSING.csv file
  Use "|" symbol as field terminator and
  "ENDALONAEND" as row terminator. */
- 
+ select PATID,'|' as Pipe1
+      ,DISPENSINGID,'|' as Pipe2
+	  ,PRESCRIBINGID,'|' as Pipe3
+      ,NDC,'|' as Pipe4
+      ,DISPENSE_YEAR,'|' as Pipe5
+      ,DISPENSE_MONTH,'|' as Pipe6
+      ,DISPENSE_Days_from_FirstEnc,'|' as Pipe7
+      ,DISPENSE_SUP,'|' as Pipe8
+      ,DISPENSE_AMT,'|' as Pipe9
+      ,RAW_NDC,'ENDALONAEND' as ENDOFLINE
+from NEXTD_DISPENSING
+
+
+
 /*purge intermediate tables*/
 drop table cdm_dispensing purge;
 drop table cdm_demographic purge;
