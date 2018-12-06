@@ -40,3 +40,19 @@ order by ist.PAT_ID
 --Step2: de-identification should be properly applied before sending out the data:
 --split  MEM_EFF_FROM_DATE and MEM_EFF_TO_DATE into year, month and delta_days_from_firts_encounter for  
 
+/* Please, make sure you return table with insurance mapped into following categories:
+1.Medicare
+2.Medicaid
+3.Other Government 
+4.Department of corrections
+5.Private health insurance
+6.Blue cross/Blue shield
+7.Managed care, unspecified
+8.No payment
+9.Miscellaneous/Other?
+9999.Unavailable/No? payer specified/blank
+NI.No information
+UN.Unknown
+OT.Other
+*/
+
