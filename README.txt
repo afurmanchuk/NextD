@@ -1,14 +1,5 @@
-/********************************************************************************/
-Order for execution:
-/********************************************************************************/
-1. Run SQLTable1_GPCsites_oracle-2018-01-10-AF.sql code first to get study sample. 
-2. Once study sample is produced all other codes could be run in any order 
-/********************************************************************************/
-/********************************************************************************/
-/********************************************************************************/
-/********************************************************************************/
 Changes made to files for current refresh:
-/********************************************************************************/
+
 
 SQLTable1_GPCsites_oracle-2018-01-10-AF.sql: 
 -search for A1c lab
@@ -58,10 +49,26 @@ NextD_PrescribedMed_GPCsites.sql:
 
 
 NextD_SES_GPCsites.sql:
--will be added to repository on 2018-12-04
+-added variable LOCATOR,SCORE,DeGAUSS, USA_ADDRESS,MILITARY_ADDRESS,COLLEGE_ADDRESS,RRHC_ADDRESS,PMB_ADDRESS,POBOX_ADDRESS
+-added lines at very end of the code specifying desired format for this table extraction
 
-NextD_PROVIDERS_GPCsites.sql:
--will be added to repository on 2018-12-04
+NextD_Provider_GPCsites_2018_12_06.sql:
+-code is modified from the one earlier oracle version of ENCOUNTER_PROVIDER code kindly provided by KUMC.
 
-NextD_DEATH_CAUSE_GPCsites.sql:
--will be added to repository on 2018-12-04
+NextD_Epic_InsuranceCoveragePerPatient_pro-ENROLLMENTtable.sql:
+-This code is prototype for actual code sites will use. Sites are expected to adopt it to the internal features of their Epic system.
+
+-Please, make sure you return table with insurance mapped into following categories:
+1.Medicare
+2.Medicaid
+3.Other Government 
+4.Department of corrections
+5.Private health insurance
+6.Blue cross/Blue shield
+7.Managed care, unspecified
+8.No payment
+9.Miscellaneous/Other?
+9999.Unavailable/No? payer specified/blank
+NI.No information
+UN.Unknown
+OT.Other
