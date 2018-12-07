@@ -12,11 +12,14 @@
 -----           Study sample, flag for established patient, T2DM sample, Pregnancy events                 -----  
 --------------------------------------------------------------------------------------------------------------- 
 /* Tables used in this code: 
-DIAGNOSIS,ENCOUNTER,DEMOGRAPHIC,PROCEDURES,LAB_RESULT_CM,PRESCRIBING tables from PCORNET.
+- DIAGNOSIS,ENCOUNTER,DEMOGRAPHIC,PROCEDURES,LAB_RESULT_CM,PRESCRIBING tables from PCORNET.
+- date_unshifts collected ahead
 
 Assumes all patient and encounter data is available in the GPC PCORNET CDM tables.
 
 */
+
+/*modification are marked as '--modified'*/
 
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
@@ -38,34 +41,42 @@ Assumes all patient and encounter data is available in the GPC PCORNET CDM table
 CREATE TABLE NextD_eligible_encounters AS
 WITH encs_with_age_at_visit AS (
    SELECT e.PATID
-         ,e.ENCOUNTERID 
-         ,(e.ADMIT_DATE - d.BIRTH_DATE) / 365.25 AS age_at_visit
+         ,e.ENCOUNTERID
+         ,d.BIRTH_DATE
+         ,round((e.ADMIT_DATE - d.BIRTH_DATE)/365.25,2) AS age_at_visit
          ,e.ADMIT_DATE
          ,e.ENC_TYPE
    FROM "&&PCORNET_CDM".ENCOUNTER e
-   JOIN "&&PCORNET_CDM".DEMOGRAPHIC d ON e.PATID = d.PATID
-), summarized_encounters AS (
-   SELECT PATID
-         ,ENCOUNTERID
-         ,ADMIT_DATE
-         ,count(DISTINCT TRUNC(ADMIT_DATE)) OVER (PARTITION BY PATID) AS cnt_distinct_enc_days
-         ,row_number() OVER (PARTITION BY PATID ORDER BY ADMIT_DATE) AS rn
-         ,ENC_TYPE
-         ,age_at_visit
-   FROM encs_with_age_at_visit
-   WHERE age_at_visit between 18 AND 89
-   AND   ENC_TYPE in ('IP', 'ED','IS','OS','AV') 
-   AND   ADMIT_DATE BETWEEN DATE '2010-01-01' AND CURRENT_DATE -- alter date range if not using the study defaults
+   JOIN "&&PCORNET_CDM".DEMOGRAPHIC d 
+   ON e.PATID = d.PATID
+)
+   ,summarized_encounters AS (
+   SELECT sh.PATID
+         ,sh.ENCOUNTERID
+         ,sh.BIRTH_DATE
+         ,sh.ADMIT_DATE
+         ,count(DISTINCT TRUNC(sh.ADMIT_DATE)) OVER (PARTITION BY sh.PATID) AS cnt_distinct_enc_days
+         ,row_number() OVER (PARTITION BY sh.PATID ORDER BY sh.ADMIT_DATE) AS rn
+         ,sh.ENC_TYPE
+         ,sh.age_at_visit
+   FROM encs_with_age_at_visit sh
+   WHERE sh.age_at_visit between 18 AND 89
+   AND   sh.ENC_TYPE in ('IP','ED','EI','IS','OS','AV')  --modified: added 'EI'
+   AND exists (select 1 from date_unshifts ds  --modified: apply date shifts so that it will be the real dates that is within the study period
+               where ds.PATID = sh.PATID and
+                     sh.ADMIT_DATE+ds.days_shift BETWEEN DATE '2010-01-01' AND CURRENT_DATE) -- alter date range if not using the study defaults
 )
 SELECT PATID
       ,ENCOUNTERID
+      ,BIRTH_DATE
       ,ADMIT_DATE
       ,cnt_distinct_enc_days
       ,rn
       ,ENC_TYPE
       ,age_at_visit
 FROM summarized_encounters
-WHERE cnt_distinct_enc_days >= 2;
+WHERE cnt_distinct_enc_days >= 2
+;
 
 
 CREATE TABLE NextD_first_visit AS
@@ -126,9 +137,10 @@ WITH preg_related_dx AS (
         ((dia.ADMIT_DATE - d.BIRTH_DATE) / 365.25 ) BETWEEN 18 AND 89
       )
       -- time frame restriction
-      AND
-      (
-         dia.ADMIT_DATE BETWEEN DATE '2010-01-01' AND CURRENT_DATE
+      AND exists
+      (select 1 from date_unshifts ds --modified: apply date shifts so that it will be the real dates that is within the study period
+       where ds.PATID = dia.PATID and
+             dia.ADMIT_DATE+ds.days_shift BETWEEN DATE '2010-01-01' AND CURRENT_DATE
       )
       -- eligible patients
       AND
@@ -166,10 +178,11 @@ WITH preg_related_dx AS (
       (
         ((p.ADMIT_DATE - d.BIRTH_DATE) / 365.25 ) BETWEEN 18 AND 89
       )
-      AND
       -- time frame restriction
-      (
-        p.ADMIT_DATE BETWEEN DATE '2010-01-01' AND CURRENT_DATE
+      AND exists
+      (select 1 from date_unshifts ds --modified: apply date shifts so that it will be the real dates that is within the study period
+       where ds.PATID = p.PATID and
+             p.ADMIT_DATE+ds.days_shift BETWEEN DATE '2010-01-01' AND CURRENT_DATE
       )
       AND
       -- eligible patients
@@ -181,7 +194,8 @@ SELECT PATID, ADMIT_DATE
 FROM preg_related_dx
 UNION
 SELECT PATID, ADMIT_DATE
-FROM delivery_proc;
+FROM delivery_proc
+;
 
 -- Find separate pregnancy events (separated by >= 12 months from prior event)
 CREATE TABLE NextD_distinct_preg_events AS
@@ -254,22 +268,40 @@ CREATE TABLE NextD_all_A1C AS
 WITH A1C_LABS AS (
 SELECT l.PATID
       ,l.LAB_ORDER_DATE
-      ,l.LAB_NAME
       ,l.LAB_LOINC
       ,l.RESULT_NUM
       ,l.RESULT_UNIT
+      ,l.RAW_LAB_NAME -- modified: removed LAB_NAME (deprecated) and added RAW_LAB_NAME
+      ,l.RAW_FACILITY_CODE 
 FROM "&&PCORNET_CDM".LAB_RESULT_CM l
-WHERE ( l.RAW_LAB_NAME like '%HEMOGLOBIN A1C%' OR l.RAW_LAB_NAME like '%A1C%' OR l.RAW_LAB_NAME like '%HA1C%' OR l.RAW_LAB_NAME like '%HbA1C%'
+WHERE ( 
+        (
+         UPPER(l.RAW_LAB_NAME) like '%HEMOGLOBIN A1C%' OR 
+         UPPER(l.RAW_LAB_NAME) like '%A1C%' OR 
+         UPPER(l.RAW_LAB_NAME) like '%HA1C%' OR 
+         UPPER(l.RAW_LAB_NAME) like '%HBA1C%'
+         )
         OR
-        l.LAB_LOINC IN ('17855-8', '4548-4','4549-2','17856-6','41995-2','59261-8','62388-4','71875-9','54039-3')
+        l.LAB_LOINC IN (
+                        '17855-8','4548-4','4549-2','17856-6',
+                        '41995-2','59261-8','62388-4','71875-9','54039-3'
+                        )
+        OR
+        /*--modified: the new column RAW_FACILITY_CODE (available after v4.0) can be used to identify 
+            additional lab based on local i2b2 concepts*/
+        l.RAW_FACILITY_CODE in (
+                                'KUH|COMPONENT_ID:2034' --KUMC specific
+                                )
       )
       AND l.RESULT_NUM > 6.5
-      AND l.RESULT_UNIT = 'PERCENT'
+      AND UPPER(l.RESULT_UNIT) in ('%','PERCENT') --modified: 'PERCENT' can be recorded as '%'
       AND EXISTS (SELECT 1 FROM NextD_preg_masked_encounters valid_encs
                            WHERE valid_encs.ENCOUNTERID = l.ENCOUNTERID)
 )
 SELECT * FROM A1C_LABS
-ORDER BY PATID, LAB_ORDER_DATE;
+ORDER BY PATID, LAB_ORDER_DATE
+;
+
 
 -- take the first date of the earlist pair of A1C results on distinct days within two years of each other
 CREATE TABLE NextD_A1C_final_FirstPair AS
@@ -321,14 +353,24 @@ SELECT l.PATID
       ,l.RESULT_NUM
       ,l.RESULT_UNIT
 FROM "&&PCORNET_CDM".LAB_RESULT_CM l
-WHERE l.LAB_LOINC IN ('1558-6', '10450-5', '1554-5', '17865-7', '35184-1')
+WHERE (l.LAB_LOINC IN (
+                       '1558-6', '10450-5', '1554-5', '17865-7', '35184-1'
+                       )
+       OR
+        /*--modified: the new column RAW_FACILITY_CODE (available after v4.0) can be used to identify 
+            additional lab based on local i2b2 concepts*/       
+       l.RAW_FACILITY_CODE in (
+                               'KUH|COMPONENT_ID:2035' -- KUMC specific
+                               )
+      )
       AND l.RESULT_NUM >= 126
       AND UPPER(l.RESULT_UNIT) = 'MG/DL' -- PCORNET_CDM 3.1 standardizes on uppercase lab units
       AND EXISTS (SELECT 1 FROM NextD_preg_masked_encounters valid_encs
                            WHERE valid_encs.ENCOUNTERID = l.ENCOUNTERID)
 )
 SELECT * FROM FG_LABS
-ORDER BY PATID, LAB_ORDER_DATE;
+ORDER BY PATID, LAB_ORDER_DATE
+;
 
 CREATE TABLE NextD_FG_final_FirstPair AS
 WITH DELTA_FG AS (
@@ -349,15 +391,8 @@ WHERE WITHIN_TWO_YEARS = 1
 SELECT PATID
       , LAB_ORDER_DATE AS EventDate
 FROM FG_WITHIN_TWO_YEARS
-WHERE rn = 1;
-
---************************************************************************************************************--
---  TODO   If Fasting Glucose (above) and / or Random Glucose (below) are not available in PCORNET CDM        --
---  TODO   LAB_RESULT_CM table then I2B2 implementation needs to go here                                      --
---  TODO                                                                                                      --
---  TODO   As with all data for NextD study dates interrogated need to be true not offset +/- 1 year          --
---************************************************************************************************************--
-
+WHERE rn = 1
+;
 
 
 ---------------------------------------------------------------------------------------------------------------
@@ -387,14 +422,32 @@ SELECT l.PATID
       ,l.RESULT_NUM
       ,l.RESULT_UNIT
 FROM "&&PCORNET_CDM".LAB_RESULT_CM l
-WHERE l.LAB_LOINC IN ('2345-7', '2339-0','10450-5','17865-7','1554-5','6777-7','54246-4','2344-0','41652-9')
+WHERE (
+       l.LAB_LOINC IN (
+                       '2345-7','2344-0','2339-0',
+                       '10450-5','17865-7','1554-5','6777-7','54246-4','41652-9'
+                       )
+       OR
+        /*--modified: the new column RAW_FACILITY_CODE (available after v4.0) can be used to identify 
+            additional lab based on local i2b2 concepts*/   
+       l.RAW_FACILITY_CODE in (
+                               'KUH|COMPONENT_ID:2010','KUH|COMPONENT_ID:2011','KUH|COMPONENT_ID:2012',
+                               'KUH|COMPONENT_ID:2036','KUH|COMPONENT_ID:2037','KUH|COMPONENT_ID:2038',
+                               'KUH|COMPONENT_ID:2039','KUH|COMPONENT_ID:2040','KUH|COMPONENT_ID:2041',
+                               'KUH|COMPONENT_ID:2042','KUH|COMPONENT_ID:2043','KUH|COMPONENT_ID:3728',
+                               'KUH|COMPONENT_ID:341','KUH|COMPONENT_ID:342','KUH|COMPONENT_ID:343',
+                               'KUH|COMPONENT_ID:344','KUH|COMPONENT_ID:515',
+                               'KUH|COMPONENT_ID:8012','KUH|COMPONENT_ID:8052','KUH|COMPONENT_ID:8087'
+                               ) -- KUMC specific
+      )
       AND l.RESULT_NUM >= 200
       AND UPPER(l.RESULT_UNIT) = 'MG/DL' -- PCORNET_CDM 3.1 standardizes on uppercase lab units
       AND EXISTS (SELECT 1 FROM NextD_preg_masked_encounters valid_encs
                            WHERE valid_encs.ENCOUNTERID = l.ENCOUNTERID)
 )
 SELECT * FROM RG_LABS
-ORDER BY PATID, LAB_ORDER_DATE;
+ORDER BY PATID, LAB_ORDER_DATE
+;
 
 CREATE TABLE NextD_RG_final_FirstPair AS
 WITH DELTA_RG AS (
@@ -415,12 +468,9 @@ WHERE WITHIN_TWO_YEARS = 1
 SELECT PATID
       , LAB_ORDER_DATE AS EventDate
 FROM RG_WITHIN_TWO_YEARS
-WHERE rn = 1;
+WHERE rn = 1
+;
 
---
--- TODO
--- I2B2 implementation where labs missing from PCORNET
---
 
 ---------------------------------------------------------------------------------------------------------------
 -----     People with one random glucose & one HbA1c having both measures on different days within        -----
@@ -453,7 +503,8 @@ WHERE ABS(TRUNC(ac.LAB_ORDER_DATE) - TRUNC(rg.LAB_ORDER_DATE)) BETWEEN 1 AND 365
 SELECT PATID
       ,EventDate
 FROM A1C_RG_PAIRS
-WHERE rn = 1;
+WHERE rn = 1
+;
 
 
 ---------------------------------------------------------------------------------------------------------------
@@ -487,7 +538,8 @@ WHERE ABS(TRUNC(ac.LAB_ORDER_DATE) - TRUNC(fg.LAB_ORDER_DATE)) BETWEEN 1 AND 365
 SELECT PATID
       ,EventDate
 FROM A1C_FG_PAIRS
-WHERE rn = 1;
+WHERE rn = 1
+;
 
 ---------------------------------------------------------------------------------------------------------------
 -----               People with two visits (inpatient, outpatient, or emergency department)               -----
@@ -537,7 +589,8 @@ WITH DX_VISITS AS (
                    WHERE valid_encs.ENCOUNTERID = d.ENCOUNTERID)
 )
 SELECT * FROM DX_VISITS
-ORDER BY PATID, ADMIT_DATE;
+ORDER BY PATID, ADMIT_DATE
+;
 
 CREATE TABLE NextD_DX_Visit_final_FirstPair AS
 WITH DELTA_DX AS (
@@ -558,7 +611,8 @@ WHERE WITHIN_TWO_YEARS = 1
 SELECT PATID
       ,ADMIT_DATE AS EventDate
 FROM DX_WITHIN_TWO_YEARS
-WHERE rn = 1;
+WHERE rn = 1
+;
 
 
 ---------------------------------------------------------------------------------------------------------------
@@ -809,9 +863,11 @@ OR
    )
 OR
   --  Combinations:
+  (
    a.RXNORM_CUI in ('1043567','1043574','1043582','104490','104491','1166403','1166404','1167810','1167811','1171248','1171249','1175658','1175659','1184627','1184628','1185049','1185624','1187973','1187974','1189806','1189810','1189811','1189812','1189813','1189814','1189818','1189823','1189827','1243022','1243026','1243029','1243033','1243036','1243037','1243038','1243039','1243040','1243829','1243833','1243835','1243839','1243843','1243845','1243848','1243850','1312411','1312415','1312418','1312422','1312425','1312429','1368387','1368391','1368394','1368395','1368396','1368397','1368398','1368405','1368409','1368412','1368416','1368419','1368423','1368426','1368430','1368433','1368434','1368435','1368436','1368437','1368440','1368444','1372692','1372706','1372716','1372717','1372738','1372754','152923','1545151','1545152','1545153','1545154','1545155','1545156','1545158','1545159','1545162','1545163','1545165','1545166','1593775','1593831','1593833','1593835','1602110','1602111','1602112','1602113','1602114','1602115','1602119','1602120','1796090','1796091','1796093','1796095','1796096','1796098','1810998','1810999','1811001','1811003','1811005','1811007','1811009','1811011','1811013','1940498','196503','208220','213319','284743','352764','368276','563653','563654','565109','568935','573220','607816','647208','731455','731457','731461','731462','731463','757603','805670','847706','847707','847708','847710','847712','847714','847716','847718','847720','847722','847724','849585','861732','861733','861737','861738','861741','861742','861745','861747','861750','861752','861755','861756','861757','861770','861771','861788','861789','861791','861792','861820','861821')
    )
-);
+)
+;
 
 ---------------------------------------------------------------------------------------------------------------
 -----         The date of the first medication of any kind will be recorded for each patient              -----
@@ -820,7 +876,8 @@ CREATE TABLE NextD_InclusionMeds_final AS
 SELECT PATID
       ,MIN(RX_ORDER_DATE) AS EventDate
 FROM NextD_specific_meds
-GROUP BY PATID;
+GROUP BY PATID
+;
 
 ---------------------------------------------------------------------------------------------------------------
 -----           People with at least one ordered medications non-specific to Diabetes Mellitus            -----
@@ -1060,11 +1117,14 @@ GROUP BY PATID;
 ---------------------------------------------------------------------------------------------------------------
 ----                    Set up PCORNET_CDM specific EstablishedPatient flag                               -----
 ---------------------------------------------------------------------------------------------------------------
-
+--modified: need to hit local i2b2 for this flag, for CDM may be truncated at 2010-01-01
+/*my solution is to obtain this flag while collecting date_unshifts. 
+  Further details are included in the NextD_Date_Recovery.sql*/
 CREATE TABLE NextD_EstablishedPatient AS
-SELECT DISTINCT PATID
-FROM "&&PCORNET_CDM".ENCOUNTER
-WHERE ADMIT_DATE < DATE '2010-01-01'; -- Adjust this if not using 2010-01-01 for study start date
+SELECT DISTINCT PATID 
+FROM date_unshifts
+where first_enc_date < Date '2010-01-01' -- Adjust this if not using 2010-01-01 for study start date;
+;
 
 CREATE INDEX NextD_Estabished_PATID_IDX ON NextD_EstablishedPatient(PATID);
 
@@ -1077,112 +1137,132 @@ CREATE INDEX NextD_Estabished_PATID_IDX ON NextD_EstablishedPatient(PATID);
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
 
-CREATE TABLE FinalStatTable1 AS
+--modified: shift back to real dates
+CREATE TABLE FinalStatTable1 AS 
 WITH combined_onset_dates AS (
-   SELECT a.PATID, a.EventDate
-   FROM NextD_DX_Visit_final_FirstPair a
-   UNION ALL
-   SELECT b.PATID, b.EventDate
-   FROM NextD_InclusionMeds_final      b
-   UNION ALL
-   SELECT c.PATID, c.EventDate
-   FROM NextD_A1C_final_FirstPair      c
-   UNION ALL
-   SELECT d.PATID, d.EventDate
-   FROM NextD_FG_final_FirstPair       d
-   UNION ALL
-   SELECT e.PATID, e.EventDate
-   FROM NextD_RG_final_FirstPair       e
-   UNION ALL
-   SELECT f.PATID, f.EventDate
-   FROM NextD_A1cFG_final_firstPair    f
-   UNION ALL
-   SELECT g.PATID, g.EventDate
-   FROM NextD_A1cRG_final_firstPair    g
-   UNION ALL
-   SELECT k.PATID, k.EventDate
-   FROM NextD_incl_non_spec_meds_final k
-), DM_OnsetDates AS (
-   SELECT PATID, MIN(EventDate) AS DMonsetDate
-   FROM combined_onset_dates
-   GROUP BY PATID
+SELECT a.PATID, a.EventDate
+FROM NextD_DX_Visit_final_FirstPair a
+UNION ALL
+SELECT b.PATID, b.EventDate
+FROM NextD_InclusionMeds_final      b
+UNION ALL
+SELECT c.PATID, c.EventDate 
+FROM NextD_A1C_final_FirstPair      c
+UNION ALL
+SELECT d.PATID, d.EventDate
+FROM NextD_FG_final_FirstPair     d
+UNION ALL
+SELECT e.PATID, e.EventDate
+FROM NextD_RG_final_FirstPair       e
+UNION ALL
+SELECT f.PATID, f.EventDate 
+FROM NextD_A1cFG_final_firstPair    f
+UNION ALL
+SELECT g.PATID, g.EventDate 
+FROM NextD_A1cRG_final_firstPair    g
+UNION ALL
+SELECT k.PATID, k.EventDate
+FROM NextD_incl_non_spec_meds_final k
+)
+   ,DM_OnsetDates AS (
+SELECT PATID, MIN(EventDate) AS DMonsetDate
+FROM combined_onset_dates
+GROUP BY PATID
 )
 SELECT v.PATID
-      ,v.NextD_first_visit AS FirstVisit
-      ,v.cnt_distinct_enc_days AS NumberOfVisits
-      ,d.DEATH_DATE
-      ,p."1"  AS Pregnancy1_date
-      ,p."2"  AS Pregnancy2_date
-      ,p."3"  AS Pregnancy3_date
-      ,p."4"  AS Pregnancy4_date
-      ,p."5"  AS Pregnancy5_date
-      ,p."6"  AS Pregnancy6_date
-      ,p."7"  AS Pregnancy7_date
-      ,p."8"  AS Pregnancy8_date
-      ,p."9"  AS Pregnancy9_date
-      ,p."10" AS Pregnancy10_date
-      ,dm.DMonsetDate AS DMonsetDate
+      ,v.NextD_first_visit + ds.days_shift AS FirstVisit -- modified: shifted dates back to real dates
+      ,v.cnt_distinct_enc_days AS NumberOfVisits -- modified: shifted dates back to real dates
+      ,v.BIRTH_DATE + ds.days_shift AS BIRTH_DATE -- modified: shifted dates back to real dates
+      ,d.DEATH_DATE + ds.days_shift AS DEATH_DATE -- modified: shifted dates back to real dates
+      ,p."1" + ds.days_shift  AS Pregnancy1_date -- modified: shifted dates back to real dates
+      ,p."2" + ds.days_shift  AS Pregnancy2_date -- modified: shifted dates back to real dates
+      ,p."3" + ds.days_shift  AS Pregnancy3_date -- modified: shifted dates back to real dates
+      ,p."4" + ds.days_shift  AS Pregnancy4_date -- modified: shifted dates back to real dates
+      ,p."5" + ds.days_shift  AS Pregnancy5_date -- modified: shifted dates back to real dates
+      ,p."6" + ds.days_shift  AS Pregnancy6_date -- modified: shifted dates back to real dates
+      ,p."7" + ds.days_shift  AS Pregnancy7_date -- modified: shifted dates back to real dates
+      ,p."8" + ds.days_shift  AS Pregnancy8_date -- modified: shifted dates back to real dates
+      ,p."9" + ds.days_shift  AS Pregnancy9_date -- modified: shifted dates back to real dates
+      ,p."10" + ds.days_shift AS Pregnancy10_date -- modified: shifted dates back to real dates
+      ,dm.DMonsetDate + ds.days_shift AS DMonsetDate -- modified: shifted dates back to real dates
       ,CASE WHEN estab.PATID IS NOT NULL
             THEN 1
             ELSE NULL
        END AS EstablishedPatientFlag
-   FROM NextD_first_visit v
-   LEFT JOIN NextD_FinalPregnancy p ON v.PATID = p.PATID
-   LEFT JOIN "&&PCORNET_CDM".DEATH d ON v.PATID = d.PATID
-   LEFT JOIN DM_OnsetDates dm ON v.PATID = dm.PATID
-   LEFT JOIN NextD_EstablishedPatient estab ON v.PATID = estab.PATID
+FROM NextD_first_visit v /*date restricted*/
+LEFT JOIN NextD_FinalPregnancy p ON v.PATID = p.PATID
+LEFT JOIN "&&PCORNET_CDM".DEATH d ON v.PATID = d.PATID
+LEFT JOIN DM_OnsetDates dm ON v.PATID = dm.PATID
+LEFT JOIN NextD_EstablishedPatient estab ON v.PATID = estab.PATID
+left join date_unshifts ds on v.PATID = ds.PATID
 ;
 
 ---------------------------------------------------------------------------------------------------------------
-/* Save FinalStatTable1 as csv file.
-Use "|" symbol as field terminator and
-"ENDALONAEND" as row terminator. */
 
-select [PATID]
-      ,year(NextD_first_visit) as FirstVisit_YEAR, '|' as Pipe1
-      ,month(NextD_first_visit) as FirstVisit_MONTH, '|' as Pipe2
-      ,[NumerOfVisits], '|' as Pipe3
-      ,year([DEATH_DATE]) as DEATH_DATE_YEAR, '|' as Pipe4
-      ,month([DEATH_DATE]) as DEATH_DATE_MONTH, '|' as Pipe5
-      ,datediff(dd,NextD_first_visit,[DEATH_DATE]) as DEATH_DATE_DELTA_DAYS, '|' as Pipe6
-      ,year([Pregnancy1_date]) as Pregnancy_date_YEAR, '|' as Pipe7
-      ,month([Pregnancy1_date]) as Pregnancy_date_MONTH, '|' as Pipe8
-      ,datediff(dd,NextD_first_visit,[Pregnancy1_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe9
-      ,year([Pregnancy2_date]) as Pregnancy_date_YEAR, '|' as Pipe10
-      ,month([Pregnancy2_date]) as Pregnancy_date_MONTH, '|' as Pipe11
-      ,datediff(dd,NextD_first_visit,[Pregnancy2_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe12
-      ,year([Pregnancy3_date]) as Pregnancy_date_YEAR, '|' as Pipe13
-      ,month([Pregnancy3_date]) as Pregnancy_date_MONTH, '|' as Pipe14
-      ,datediff(dd,NextD_first_visit,[Pregnancy3_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe15
-      ,year([Pregnancy4_date]) as Pregnancy_date_YEAR, '|' as Pipe16
-      ,month([Pregnancy4_date]) as Pregnancy_date_MONTH, '|' as Pipe17
-      ,datediff(dd,NextD_first_visit,[Pregnancy4_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe18
-      ,year([Pregnancy5_date]) as Pregnancy_date_YEAR, '|' as Pipe19
-      ,month([Pregnancy5_date]) as Pregnancy_date_MONTH, '|' as Pipe20
-      ,datediff(dd,NextD_first_visit,[Pregnancy5_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe21
-      ,year([Pregnancy6_date]) as Pregnancy_date_YEAR, '|' as Pipe22
-      ,month([Pregnancy6_date]) as Pregnancy_date_MONTH, '|' as Pipe23
-      ,datediff(dd,NextD_first_visit,[Pregnancy6_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe24
-      ,year([Pregnancy7_date]) as Pregnancy_date_YEAR, '|' as Pipe25
-      ,month([Pregnancy7_date]) as Pregnancy_date_MONTH, '|' as Pipe26
-      ,datediff(dd,NextD_first_visit,[Pregnancy7_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe27
-      ,year([Pregnancy8_date]) as Pregnancy_date_YEAR, '|' as Pipe28
-      ,month([Pregnancy8_date]) as Pregnancy_date_MONTH, '|' as Pipe29
-      ,datediff(dd,NextD_first_visit,[Pregnancy8_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe30
-      ,year([Pregnancy9_date]) as Pregnancy_date_YEAR, '|' as Pipe31
-      ,month([Pregnancy9_date]) as Pregnancy_date_MONTH, '|' as Pipe32
-      ,datediff(dd,NextD_first_visit,[Pregnancy9_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe33
-      ,year([Pregnancy10_date]) as Pregnancy_date_YEAR, '|' as Pipe34
-      ,month([Pregnancy10_date]) as Pregnancy_date_MONTH, '|' as Pipe35
-      ,datediff(dd,NextD_first_visit,[Pregnancy10_date]) as Pregnancy_date_DELTA_DAYS, '|' as Pipe
-      ,year(DM_Onsetdates) as DM_OnsetDates_YEAR, '|' as Pipe36
-      ,month(DM_Onsetdates) as DM_OnsetDates_MONTH, '|' as Pipe37
-      ,datediff(dd,NextD_first_visit,DM_OnsetDates) as DM_OnsetDates_DELTA_DAYS, '|' as Pipe38
-      ,year([BIRTH_DATE]) as BIRTH_DATE_YEAR, '|' as Pipe39
-      ,month([BIRTH_DATE]) as BIRTH_DATE_MONTH, '|' as Pipe40
-      ,datediff(dd,NextD_first_visit,[BIRTH_DATE]) as BIRTH_DATE_DELTA_DAYS, '|' as Pipe41
-      ,EstablishedPatientFlag, 'ENDALONAEND' as ENDOFLINE				      
-FROM FinalStatTable1;
+create table FinalStatTable1 as -- modified: this is the final output table
+--modified: remove all '[]' 
+--modified: replace 'datediff' by oracle-specific expression
+--modified: change all 'NextD_first_visit' to 'FirstVisit'
+--modifier: added numbers to duplicated 'Pregnancy_date_YEAR', 'Pregnancy_date_MONTH', 'Pregnancy_date_DELTA_DAYS'
+select PATID
+      ,cast(to_char(FirstVisit,'YYYY') as INTEGER) as FirstVisit_YEAR, '|' as Pipe1 
+      ,cast(to_char(FirstVisit,'MM') as INTEGER) as FirstVisit_MONTH, '|' as Pipe2
+      ,cast(NumberOfVisits as INTEGER) as NumberOfVisits, '|' as Pipe3
+      
+      ,cast(to_char(DEATH_DATE,'YYYY') as INTEGER) as DEATH_DATE_YEAR, '|' as Pipe4
+      ,cast(to_char(DEATH_DATE,'MM') as INTEGER) as DEATH_DATE_MONTH, '|' as Pipe5
+      ,cast(DEATH_DATE-FirstVisit as INTEGER) as DEATH_DATE_DELTA_DAYS, '|' as Pipe6
+      
+      ,cast(to_char(Pregnancy1_date,'YYYY') as INTEGER) as Pregnancy1_date_YEAR, '|' as Pipe7
+      ,cast(to_char(Pregnancy1_date,'MM') as INTEGER) as Pregnancy1_date_MONTH, '|' as Pipe8
+      ,cast(Pregnancy1_date - FirstVisit as INTEGER) as Pregnancy1_date_DELTA_DAYS, '|' as Pipe9
+      
+      ,cast(to_char(Pregnancy2_date,'YYYY') as INTEGER) as Pregnancy2_date_YEAR, '|' as Pipe10
+      ,cast(to_char(Pregnancy2_date,'MM') as INTEGER) as Pregnancy2_date_MONTH, '|' as Pipe11
+      ,cast(Pregnancy2_date - FirstVisit as INTEGER) as Pregnancy2_date_DELTA_DAYS, '|' as Pipe12
+      
+      ,cast(to_char(Pregnancy3_date,'YYYY') as INTEGER) as Pregnancy3_date_YEAR, '|' as Pipe13
+      ,cast(to_char(Pregnancy3_date,'MM') as INTEGER) as Pregnancy3_date_MONTH, '|' as Pipe14
+      ,cast(Pregnancy3_date - FirstVisit as INTEGER) as Pregnancy3_date_DELTA_DAYS, '|' as Pipe15
+      
+      ,cast(to_char(Pregnancy4_date,'YYYY') as INTEGER) as Pregnancy4_date_YEAR, '|' as Pipe16
+      ,cast(to_char(Pregnancy4_date,'MM') as INTEGER) as Pregnancy4_date_MONTH, '|' as Pipe17
+      ,cast(Pregnancy4_date - FirstVisit as INTEGER) as Pregnancy4_date_DELTA_DAYS, '|' as Pipe18
+      
+      ,cast(to_char(Pregnancy5_date,'YYYY') as INTEGER) as Pregnancy5_date_YEAR, '|' as Pipe19
+      ,cast(to_char(Pregnancy5_date,'MM') as INTEGER) as Pregnancy5_date_MONTH, '|' as Pipe20
+      ,cast(Pregnancy5_date - FirstVisit as INTEGER) as Pregnancy5_date_DELTA_DAYS, '|' as Pipe21
+      
+      ,cast(to_char(Pregnancy6_date,'YYYY') as INTEGER) as Pregnancy6_date_YEAR, '|' as Pipe22
+      ,cast(to_char(Pregnancy6_date,'MM') as INTEGER) as Pregnancy6_date_MONTH, '|' as Pipe23
+      ,cast(Pregnancy6_date - FirstVisit as INTEGER) as Pregnancy6_date_DELTA_DAYS, '|' as Pipe24
+      
+      ,cast(to_char(Pregnancy7_date,'YYYY') as INTEGER) as Pregnancy7_date_YEAR, '|' as Pipe25
+      ,cast(to_char(Pregnancy7_date,'MM') as INTEGER) as Pregnancy7_date_MONTH, '|' as Pipe26
+      ,cast(Pregnancy7_date - FirstVisit as INTEGER) as Pregnancy7_date_DELTA_DAYS, '|' as Pipe27
+      
+      ,cast(to_char(Pregnancy8_date,'YYYY') as INTEGER) as Pregnancy8_date_YEAR, '|' as Pipe28
+      ,cast(to_char(Pregnancy8_date,'MM') as INTEGER) as Pregnancy8_date_MONTH, '|' as Pipe29
+      ,cast(Pregnancy8_date - FirstVisit as INTEGER) as Pregnancy8_date_DELTA_DAYS, '|' as Pipe30
+      
+      ,cast(to_char(Pregnancy9_date,'YYYY') as INTEGER) as Pregnancy9_date_YEAR, '|' as Pipe31
+      ,cast(to_char(Pregnancy9_date,'MM') as INTEGER) as Pregnancy9_date_MONTH, '|' as Pipe32
+      ,cast(Pregnancy9_date - FirstVisit as INTEGER) as Pregnancy9_date_DELTA_DAYS, '|' as Pipe33
+      
+      ,cast(to_char(Pregnancy10_date,'YYYY') as INTEGER) as Pregnancy10_date_YEAR, '|' as Pipe34
+      ,cast(to_char(Pregnancy10_date,'MM') as INTEGER) as Pregnancy10_date_MONTH, '|' as Pipe35
+      ,cast(Pregnancy10_date - FirstVisit as INTEGER) as Pregnancy10_date_DELTA_DAYS, '|' as Pipe36
+      
+      ,cast(to_char(DMonsetDate,'YYYY') as INTEGER) as DM_OnsetDates_YEAR, '|' as Pipe37
+      ,cast(to_char(DMonsetDate,'MM') as INTEGER) as DM_OnsetDates_MONTH, '|' as Pipe38
+      ,cast(DMonsetDate - FirstVisit as INTEGER) as DM_OnsetDates_DELTA_DAYS, '|' as Pipe39
+      
+      ,cast(to_char(BIRTH_DATE,'YYYY') as INTEGER) as BIRTH_DATE_YEAR, '|' as Pipe40
+      ,cast(to_char(BIRTH_DATE,'MM') as INTEGER) as BIRTH_DATE_MONTH, '|' as Pipe41
+      ,cast(BIRTH_DATE - FirstVisit as INTEGER) as BIRTH_DATE_DELTA_DAYS, '|' as Pipe42
+      
+      ,EstablishedPatientFlag, 'ENDALONAEND' as ENDOFLINE			      
+FROM FinalStatTable1_local;
 
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
