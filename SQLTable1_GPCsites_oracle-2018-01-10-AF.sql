@@ -348,10 +348,11 @@ CREATE TABLE NextD_all_FG AS
 WITH FG_LABS AS (
 SELECT l.PATID
       ,l.LAB_ORDER_DATE
-      ,l.LAB_NAME
       ,l.LAB_LOINC
       ,l.RESULT_NUM
       ,l.RESULT_UNIT
+      ,l.RAW_LAB_NAME -- modified: removed LAB_NAME (deprecated) and added RAW_LAB_NAME
+      ,l.RAW_FACILITY_CODE 
 FROM "&&PCORNET_CDM".LAB_RESULT_CM l
 WHERE (l.LAB_LOINC IN (
                        '1558-6', '10450-5', '1554-5', '17865-7', '35184-1'
@@ -417,10 +418,11 @@ CREATE TABLE NextD_all_RG AS
 WITH RG_LABS AS (
 SELECT l.PATID
       ,l.LAB_ORDER_DATE
-      ,l.LAB_NAME
       ,l.LAB_LOINC
       ,l.RESULT_NUM
       ,l.RESULT_UNIT
+      ,l.RAW_LAB_NAME -- modified: removed LAB_NAME (deprecated) and added RAW_LAB_NAME
+      ,l.RAW_FACILITY_CODE 
 FROM "&&PCORNET_CDM".LAB_RESULT_CM l
 WHERE (
        l.LAB_LOINC IN (
@@ -1137,8 +1139,7 @@ CREATE INDEX NextD_Estabished_PATID_IDX ON NextD_EstablishedPatient(PATID);
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
 
---modified: shift back to real dates
-CREATE TABLE FinalStatTable1 AS 
+CREATE TABLE FinalStatTable1_local AS 
 WITH combined_onset_dates AS (
 SELECT a.PATID, a.EventDate
 FROM NextD_DX_Visit_final_FirstPair a
@@ -1171,7 +1172,7 @@ GROUP BY PATID
 )
 SELECT v.PATID
       ,v.NextD_first_visit + ds.days_shift AS FirstVisit -- modified: shifted dates back to real dates
-      ,v.cnt_distinct_enc_days AS NumberOfVisits -- modified: shifted dates back to real dates
+      ,v.cnt_distinct_enc_days AS NumberOfVisits 
       ,v.BIRTH_DATE + ds.days_shift AS BIRTH_DATE -- modified: shifted dates back to real dates
       ,d.DEATH_DATE + ds.days_shift AS DEATH_DATE -- modified: shifted dates back to real dates
       ,p."1" + ds.days_shift  AS Pregnancy1_date -- modified: shifted dates back to real dates
@@ -1189,7 +1190,7 @@ SELECT v.PATID
             THEN 1
             ELSE NULL
        END AS EstablishedPatientFlag
-FROM NextD_first_visit v /*date restricted*/
+FROM NextD_first_visit v
 LEFT JOIN NextD_FinalPregnancy p ON v.PATID = p.PATID
 LEFT JOIN "&&PCORNET_CDM".DEATH d ON v.PATID = d.PATID
 LEFT JOIN DM_OnsetDates dm ON v.PATID = dm.PATID
