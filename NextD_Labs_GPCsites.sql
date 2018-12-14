@@ -37,10 +37,10 @@ select column_value lab_loinc, 'A1C' lab_name
 from table(sys.ODCIVarchar2List('17855-8', '4548-4','4549-2','17856-6','41995-2','59261-8','62388-4','71875-9','54039-3'))
 union all
 select column_value lab_loinc, 'CREATININE' lab_name
-from table(sys.ODCIVarchar2List('2160-0','38483-4'))  /*KUMC specific*/
+from table(sys.ODCIVarchar2List('2160-0','38483-4','21232-4','38483-4','2160-0','44784-7','40248-7')) 
 union all
 select column_value lab_loinc, 'HGB' lab_name
-from table(sys.ODCIVarchar2List('718-7','20509-6','30313-1'))  /*KUMC specific*/
+from table(sys.ODCIVarchar2List('718-7','20509-6','30313-1','30350-3','30313-1','14775-1','30352-9','75928-2','20509-6','55782-7','59260-0'))  
 union all
 select column_value lab_loinc, 'RANDOM GLUCOSE' lab_name
 from table(sys.ODCIVarchar2List('2345-7', '2339-0','10450-5','17865-7','1554-5','6777-7','54246-4','2344-0','41652-9'))
