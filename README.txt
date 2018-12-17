@@ -1,64 +1,149 @@
-Changes made to files for current refresh:
+/*********************************************************************/
+This repository of sql codes is meant to be used for the second is nextD extraction round.
+<Intellectual credit: The oracle adaptation of the code and description was kindly performed by KUMC team>
+/*********************************************************************/
+Data extraction is separated into two parts with deadlines provided accordingly: 
 
+Part 1 extraction (deadline -2018-01-05). Tables to be extracted are: 
+FinalStatsFinal1, NextD_Demographic, NextD_Encounter, NextD_Prescribing, NextD_Dispensing, NextD_Vital, NextD_Labs, NextD_Diagnosis, NextD_Procedure.
+Part 2 extraction (deadline -2018-02-15). Tables to be extracted are: 
+NextD_Provider, NextD_Enrollement, NextD_SES.
 
-SQLTable1_GPCsites_oracle-2018-01-10-AF.sql: 
--search for A1c lab
--RXNOM_CUI codes & regular expressions for medications
--added lines at very end of the code specifying desired format for this table extraction
+Note: The proposed order of execution could be used with following exceptions:
+*There is no particular execution orders among 3.1 - 3.5, as long as tables at step 1 and 2 are collected
+**There is not particular execution order between 4.1 and 4.2, as long as tables of step 1,2 and 3 are collected
+/*********************************************************************/
 
-NextD_Demographic_GPCsites.sql:
--Minor changes in namings of BDAY variables
--added pat_pref_Language_spoken
--added lines at very end of the code specifying desired format for this table extraction
+Script name: NextD_Date_Recovery-2018-12-05-SX.sql
+Execution order: 1
+Tables required: 
++PCORNET_CDM.DEMOGRAPHIC;
++local patient_dimension (or any equivalent table) with patients' real birth_date; 
++local visit_dimension (or any equivalent table) with visits and their real start_dates;
+Table produced: 
++date_unshifts
+Comments: collect date shifts, first_enc_date (for identifyin established patient later) and marital_status in advance.
+Update date: 12/5/2018
 
-NextD_Encounter_Provider_GPCsites.sql:
--added lines at very end of the code specifying desired format for this table extraction
+Script name: SQLTable1_GPCsites_oracle-2018-12-07-SX.sql
+Execution order: 2
+Tables required: 
++date_unshifts;
++PCORNET_CDM.DEMOGRAPHIC;
++PCORNET_CDM.ENCOUNTER;
++PCORNET_CDM.DIAGNOSIS;
++PCORNET_CDM.PROCEDURES;
++PCORNET_CDM.LAB_RESULT_CM;
++PCORNET_CDM.PRESCRIBING;
+Table produced:
++FinalStatsFinal1_local;
++FinalStatsFinal1;
+Comments: FinalStatsFinal1_local should include full real dates for future reference; FinalStatsFinal1 is date-blinded
+Update date: 12/5/2018
 
-NextD_Encounter_ProviderCustom_GPCsites:
--added lines at very end of the code specifying desired format for this table extraction
+Script name: NextD_Demographic_GPCsites-2018-12-05-SX.sql
+Execution order: 3.1*
+Tables required: 
++PCORNET_CDM.DEMOGRAPHIC
+Table produced:
++NextD_Demographic
+Comments: Demograhic table
+Update date: 12/5/2018
 
+Script name: NextD_Encounter_GPCsites-2018-12-14-SX.sql
+Execution order: 3.2*
+Tables required: 
++FinalStatsFinal1_local;
++date_unshifts;
++PCORNET_CDM.ENCOUNTER;
++PCORNET_CDM.DEMOGRAPHIC;
+Table produced:
++NextD_Encounter
+Comments: Encounter table 
+Update date: 12/14/2018
 
-NPI2NPPESTaxonomy_GPCsites.sql:
--no changes
+Script name: NextD_PrescribedMed_GPCsites-2018-12-14-SX.sql
+Execution order: 3.3*
+Tables required: 
++FinalStatsFinal1_local;
++date_unshifts;
++PCORNET_CDM.PRESCRIBING;
+Table produced:
++NextD_Prescribing
+Comments: Prescribing table (exclude pregancy)
+Update date: 12/14/2018
 
-NextD_Date_Recovery.sql:
--No changes
+Script name: NextD_DispensedMed_GPCsites-2018-12-14-SX.sql
+Execution order: 3.4*
+Tables required: 
++FinalStatsFinal1_local;
++date_unshifts;
++PCORNET_CDM.DISPENSING;
+Table produced:
+Comments: NextD_Dispensing
+Update date: 12/14/2018
 
-NextD_Diagnoses_GPCsites.sql:
--added lines at very end of the code specifying desired format for this table extraction
+Script name: NextD_Vital_GPCsites-2018-12-14-SX.sql
+Execution order: 3.5*
+Tables required: 
++FinalStatsFinal1_local;
++date_unshifts;
++PCORNET_CDM.VITAL_SIGN;
+Table produced:NextD_Vital
+Comments: Vital table (exclude pregancy)
+Update date: 12/14/2018
 
-NextD_Procedure_GPCsites.sql:
--added lines for PX_DATE variable
--added lines at very end of the code specifying desired format for this table extraction
+Script name: NextD_Labs_GPCsites-2018-12-15-SX.sql
+Execution order: 3.6*
+Tables required: 
++FinalStatsFinal1_local;
++date_unshifts;
++PCORNET_CDM.LAB_RESULT_CM;
+Table produced:
++NextD_Labs
+Comments: Lab table (exclude pregancy)
+Update date: 12/15/2018
 
-NextD_Vital_GPCsites.sql:
--Minor correction to variable name. Misspeling.
--added lines at very end of the code specifying desired format for this table extraction
+Script name: NextD_Diagnosis_GPCsites-2018-12-15-SX.sql
+Execution order: 4.1**
+Tables required: 
++NextD_Encounter
+Table produced:
++NextD_Diagnosis
+Comments: Diagnosis table (exclude pregancy)
+Update date: 12/15/2018
 
-NextD_DispensedMed_GPCSites.sql:
--added to code PRESCRIBINGID variable
--added lines at very end of the code specifying desired format for this table extraction
+Script name: NextD_Procedures_GPCsites-2018-12-15-SX.sql
+Execution order: 4.2**
+Tables required: 
++FinalStatsFinal1_local;
++date_unshifts;
++PCORNET_CDM.ENCOUNTER;
++PCORNET_CDM.PROCEDURES;
+Table produced:
++NextD_Procedure
+Comments: Procedure table
+Update date: 12/15/2018
 
-NextD_Labs_GPCsites.sql:
--added to code lines for SPECIMEN_SOURCE & RESULT_QUAL variables
--added lines at very end of the code specifying desired format for this table extraction
+Script name: NextD_Provider_GPCsites-2018-12-17-SX.sql
+Execution order: 5
+Tables required: 
++PCORNET_CDM.PROVIDER
+Table produced:
++NextD_Provider
+Comments: Provider table
+Update date: 12/17/2018
 
-NextD_PrescribedMed_GPCsites.sql:
--added to code line for RX_START_DATE & RX_END_DATE
--added lines at very end of the code specifying desired format for this table extraction
-
-
-NextD_SES_GPCsites.sql:
--added variable LOCATOR,SCORE,DeGAUSS, USA_ADDRESS,MILITARY_ADDRESS,COLLEGE_ADDRESS,RRHC_ADDRESS,PMB_ADDRESS,POBOX_ADDRESS
--added lines at very end of the code specifying desired format for this table extraction
-
-NextD_Provider_GPCsites_2018_12_06.sql:
--code is modified from the one earlier oracle version of ENCOUNTER_PROVIDER code kindly provided by KUMC.
-
-NextD_Epic_InsuranceCoveragePerPatient_pro-ENROLLMENTtable.sql:
--This code is prototype for actual code sites will use. Sites are expected to adopt it to the internal features of their Epic system.
-
--Please, make sure you return table with insurance mapped into following categories:
+Script name: NextD_Epic_InsuranceCoveragePerPatient_pro-ENROLLMENTtable-2018-12-17-SX.sql
+Execution order: 6
+Tables required: 
++FinalStatsFinal1_local;
++date_unshifts;
++PCORNET_CDM.ENROLLEMENT
+Table produced:
++NextD_Enrollement
+Comments: This code is not actual code meant to be used by sites. This is rather prototype proposed to be adopted by sites according tro internal structure. The adopted code is expected to produce Enrollement table. 
+Please, make sure you return table with insurance mapped into following categories:
 1.Medicare
 2.Medicaid
 3.Other Government 
@@ -67,8 +152,19 @@ NextD_Epic_InsuranceCoveragePerPatient_pro-ENROLLMENTtable.sql:
 6.Blue cross/Blue shield
 7.Managed care, unspecified
 8.No payment
-9.Miscellaneous/Other?
-9999.Unavailable/No? payer specified/blank
+9.Miscellaneous/Other
+9999.Unavailable/No payer specified/blank
 NI.No information
 UN.Unknown
 OT.Other
+Update date: 12/7/2018
+
+Script name: NextD_SES_GPCsites-2018-12-17-SX.sql
+Execution order: 7
+Tables required: 
++FinalStatsFinal1_local;
++Local table with information on geocoding accuracy, and GEOIIDs
+Table produced:
++NextD_SES
+Comments: SES table
+Update date: 12/17/2018
