@@ -1,8 +1,8 @@
 /*********************************************************************/
-This repository of sql codes is meant to be used for the second is nextD extraction round.
+This repository is meant to be used for the second nextD extraction round.
 <Intellectual credit: The oracle adaptation of the code and description was kindly performed by KUMC team>
 /*********************************************************************/
-Data extraction is separated into two parts with deadlines provided accordingly: 
+The data extraction is separated into two parts with deadlines provided accordingly: 
 
 Part 1 extraction (deadline -2018-01-05). Tables to be extracted are: 
 FinalStatsFinal1, NextD_Demographic, NextD_Encounter, NextD_Prescribing, NextD_Dispensing, NextD_Vital, NextD_Labs, NextD_Diagnosis, NextD_Procedure.
