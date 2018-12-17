@@ -159,7 +159,7 @@ UN.Unknown
 OT.Other
 Update date: 12/7/2018
 
-Script name: NextD_SES_GPCsites-2018-12-17-SX.sql
+Script name: NextD_SES_GPCsites-2018-12-17-AF.sql
 Execution order: 7
 Tables required: 
 +FinalStatsFinal1_local;
