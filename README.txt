@@ -54,7 +54,7 @@ Tables required:
 +PCORNET_CDM.DEMOGRAPHIC
 Table produced:
 +NextD_Demographic
-Comments: Demograhic table
+Comments: Demograhic table. Variable PAT_PREF_LANGUAGE_SPOKEN is no longer collected from source system.
 Update date: 12/5/2018
 
 Script name: NextD_Encounter_GPCsites-2018-12-14-SX.sql
