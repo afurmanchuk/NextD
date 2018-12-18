@@ -1,5 +1,12 @@
 /*********************************************************************/
 This repository is meant to be used for the second nextD extraction round.
+
+Description of Next-D project and all relevant details on data extraction beyond sql codes and this README file could be found at:
+https://www.dropbox.com/home/diabetes%20project%20(working%20docs)/Definitions_StudySamples%26Variables?preview=Definitions_Part1-2018-12-06-af.docx
+https://www.dropbox.com/home/diabetes%20project%20(working%20docs)/Definitions_StudySamples%26Variables?preview=Definitions_Part2-2018-12-06-af.docx
+https://www.dropbox.com/home/diabetes%20project%20(working%20docs)/Definitions_StudySamples%26Variables?preview=Definitions_Appendix_A-2018-11-27-af.docx
+https://www.dropbox.com/home/diabetes%20project%20(working%20docs)/Definitions_StudySamples%26Variables?preview=Definitions_Apendix_B-2018-12-14-AF.docx
+
 <Intellectual credit: The sql codes ending with XS are oracle adaptation of the code and description was kindly performed by KUMC team. Codes eneding up with AF are modifications or earlier vesions of oracle codes.>
 /*********************************************************************/
 The data extraction is separated into two parts with deadlines provided accordingly: 
