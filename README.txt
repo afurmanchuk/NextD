@@ -19,6 +19,8 @@ NextD_Provider, NextD_Enrollement, NextD_SES.
 Note: The proposed order of execution could be used with following exceptions:
 *There is no particular execution orders among 3.1 - 3.5, as long as tables at step 1 and 2 are collected
 **There is not particular execution order between 4.1 and 4.2, as long as tables of step 1,2 and 3 are collected
+
+Table numbering inside of sql codes corresponds to numbering in NextD data dictionary and might be different from proposed below order of execution.
 /*********************************************************************/
 
 Script name: NextD_Date_Recovery-2018-12-05-SX.sql
