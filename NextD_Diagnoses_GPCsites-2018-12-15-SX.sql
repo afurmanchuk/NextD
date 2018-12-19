@@ -8,7 +8,7 @@
 /*Note: 'KUMC specific' issue are marked as such*/
 
 /**************************************************************************/
-/***********************Table 9 -- Diagnoses*******************************/
+/***********************Table 7 -- Diagnoses*******************************/
 /**************************************************************************/
 /*for better efficiency*/
 create index NextD_ENC_PAT_IDX on NEXTD_ENCOUNTER(ENCOUNTERID);
