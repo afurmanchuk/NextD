@@ -135,7 +135,10 @@ Update date: 12/15/2018
 Script name: NextD_Provider_GPCsites-2018-12-17-SX.sql
 Execution order: 5
 Tables required: 
-+PCORNET_CDM.PROVIDER
++NEXTD_ENCOUNTER
++NEXTD_PRESCRIBING
++PCORNET_CDM.PROVIDER;
++PROVIDER_CATEGORY (upload PROVIDER_PROVIDER.csv file)
 Table produced:
 +NextD_Provider
 Comments: Provider table
