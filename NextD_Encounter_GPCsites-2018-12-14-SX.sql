@@ -1,6 +1,6 @@
 /****************************************************************************************************************/
 /* NextD Clinical Variable Extractions                                                                          */
-/* - require: 1. FinalStatsTable1_local version where dates are nor masked                                      */
+/* - require: 1. FinalStatTable1_local version where dates are nor masked                                       */
 /*            2. date_unshifts generated from either NextD_Date_Recovery.sql or site-specific approaches        */
 /* - We assume PCORNET_CDM is set appropriate for your site; for example, define PCORNET_CDM = PCORNET_CDM_C5R2 */
 /****************************************************************************************************************/
@@ -49,4 +49,3 @@ select distinct
 from enc_with_age_at_visit
 where age_at_visit between 18 and 89
 ;
-
