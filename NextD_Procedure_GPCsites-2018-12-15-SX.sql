@@ -1,6 +1,6 @@
 /******************************************************************************************************************/
 /* NextD Clinical Variable Extractions                                                                            */
-/* - require: 1. FinalStatsTable1_local: the local version where dates neither shifted nor masked                 */
+/* - require: 1. FinalStatTable1_local: the local version where dates neither shifted nor masked                  */
 /*            2. date_unshifts: an intermediate table for recovering real dates                                   */
 /*            3. NEXTD_ENCOUNTER: NextD Encounter table                                                           */
 /* - We assume PCORNET_CDM is set appropriate for your site; for example, define PCORNET_CDM = PCORNET_CDM_C5R2   */
@@ -8,7 +8,7 @@
 
 
 /****************************************************************************/
-/***********************Table 10 -- Procedures*******************************/
+/***********************Table 8 -- Procedures*******************************/
 /****************************************************************************/
 /*for better efficiency*/
 create index NextD_ENC_PAT_IDX on NEXTD_ENCOUNTER(ENCOUNTERID);
@@ -35,4 +35,3 @@ on enc.ENCOUNTERID = px.ENCOUNTERID
 left join date_unshifts ds on enc.PATID = ds.PATID 
 left join FinalStatTable1_local fst on enc.PATID = fst.PATID  
 ; 
-
