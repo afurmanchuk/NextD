@@ -1,6 +1,6 @@
 /******************************************************************************************************************/
 /* NextD Clinical Variable Extractions                                                                            */
-/* - require: 1. FinalStatsTable1: the local version where dates are unshifted                                    */
+/* - require: 1. FinalStatTable1: the local version where dates are unshifted                                     */
 /*            2. date_unshifts: an intermediate table for recovering real dates                                   */
 /*               columns:        PATID: CDM patient ID                                                            */
 /*                               days_shift: days shifted                                                         */
@@ -37,8 +37,8 @@ select pat.PATID,'|' as Pipe1
       ,demo.HISPANIC,'|' as Pipe7
       ,demo.PAT_PREF_LANGUAGE_SPOKEN,'|' as Pipe8
       ,case when ds.MARITAL_STATUS_CD in ('u','@') or ds.MARITAL_STATUS_CD is null then 'NI'
-            else upper(ds.MARITAL_STATUS_CD) end as MARITAL_STATUS,'|' as Pipe9
-      ,'ENDALONAEND' ENDALONAEND
+            else upper(ds.MARITAL_STATUS_CD) end as MARITAL_STATUS
+      ,'ENDALONAEND' as ENDOFLINE
 from date_unshifts ds 
 join FinalStatTable1 pat
 on ds.PATID = pat.PATID
