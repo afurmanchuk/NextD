@@ -1,6 +1,6 @@
 /******************************************************************************************************************/
 /* NextD Clinical Variable Extractions                                                                            */
-/* - require: 1. FinalStatsTable1_local: the local version where dates neither shifted nor masked                 */
+/* - require: 1. FinalStatTable1_local: the local version where dates neither shifted nor masked                  */
 /*            2. date_unshifts: an intermediate table for recovering real dates                                   */
 /* - We assume PCORNET_CDM is set appropriate for your site; for example, define PCORNET_CDM = PCORNET_CDM_C5R2   */
 /******************************************************************************************************************/
@@ -8,7 +8,7 @@
 /*Note: 'KUMC specific' issue are marked as such*/
 
 /**************************************************************************/
-/***********************Table 7 -- Vital Signs*****************************/
+/***********************Table 5 -- Vital Signs*****************************/
 /**************************************************************************/
 /*for better efficiency*/
 create index FinalStatTable1_PAT_IDX on FinalStatTable1_local(PATID);
