@@ -1,6 +1,6 @@
 /******************************************************************************************************************/
 /* NextD Clinical Variable Extractions                                                                            */
-/* - require: 1. FinalStatsTable1_local: the local version where dates neither shifted nor masked                 */
+/* - require: 1. FinalStatTable1_local: the local version where dates neither shifted nor masked                  */
 /*            2. date_unshifts: an intermediate table for recovering real dates                                   */
 /* - We assume PCORNET_CDM is set appropriate for your site; for example, define PCORNET_CDM = PCORNET_CDM_C5R2   */
 /******************************************************************************************************************/
@@ -13,7 +13,7 @@
 /*for better efficiency*/
 create index FinalStatTable1_PAT_IDX on FinalStatTable1_local(PATID);
 
-create table NEXTD_PRECSRIBING_local as
+create table NEXTD_PRESCRIBING_local as
 --collect all prescribing medications and shift the dates back
 with pmed_with_age_realdate as (
 select pmed.PATID
@@ -85,32 +85,7 @@ where pmedrd.age_at_event between 18 and 89 and                                /
 ;
 
 
-create table NEXTD_PRECSRIBING as
---time blinding
-select fst.PATID
-      ,erx.ENCOUNTERID
-      ,erx.PRESCRIBINGID
-      ,erx.RXNORM_CUI
-      ,cast(to_char(erx.REAL_RX_ORDER_DATE,'YYYY') as INTEGER) RX_ORDER_YEAR
-      ,cast(to_char(erx.REAL_RX_ORDER_DATE,'MM') as INTEGER) RX_ORDER_MONTH
-      ,erx.REAL_RX_ORDER_DATE - fst.FirstVisit as RX_ORDER_Days_from_FirstEnc
-      ,cast(to_char(erx.REAL_RX_START_DATE,'YYYY') as INTEGER) RX_START_YEAR
-      ,cast(to_char(erx.REAL_RX_START_DATE,'MM') as INTEGER) RX_START_MONTH
-      ,erx.REAL_RX_START_DATE - fst.FirstVisit as RX_START_Days_from_FirstEnc
-      ,cast(to_char(erx.REAL_RX__END_DATE,'YYYY') as INTEGER) RX_END_YEAR
-      ,cast(to_char(erx.REAL_RX__ENDR_DATE,'MM') as INTEGER) RX_END_MONTH
-      ,erx.REAL_RX__END_DATE - fst.FirstVisit as RX_END_Days_from_FirstEnc
-      ,erx.RX_PROVIDERID
-      ,erx.RX_DAYS_SUPPLY
-      ,erx.RX_REFILLS
-      ,erx.RX_BASIS
-      ,erx.RAW_RX_MED_NAME /*optional -- comment out if not having it*/
-from FinalStatTable1_local fst
-left join eligible_prx erx
-on erx.PATID = fst.PATID          
-;
-
-create table NEXTD_PRECSRIBING as
+create table NEXTD_PRESCRIBING as
 --time blinding
 select fst.PATID,'|' as Pipe1
       ,erx.ENCOUNTERID,'|' as Pipe2
@@ -131,8 +106,6 @@ select fst.PATID,'|' as Pipe1
       ,erx.RX_BASIS,'|' as Pipe17
       ,erx.RAW_RX_MED_NAME,'ENDALONAEND' as ENDOFLINE
 from FinalStatTable1_local fst
-left join NEXTD_PRECSRIBING_local erx
+left join NEXTD_PRESCRIBING_local erx
 on erx.PATID = fst.PATID          
 ;
-
-
