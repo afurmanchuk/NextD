@@ -26,4 +26,3 @@ where exists (select 1 from NEXTD_ENCOUNTER enc
       exists (select 1 from NEXTD_PRESCRIBING presc 
               where presc.RX_PROVIDERID = prov.PROVIDERID)
 ; 
-
