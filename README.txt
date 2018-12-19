@@ -141,8 +141,18 @@ Table produced:
 Comments: Provider table
 Update date: 12/17/2018
 
-Script name: NextD_Epic_InsuranceCoveragePerPatient_pro-ENROLLMENTtable-2018-12-17-SX.sql
+Script name: NextD_DeathCause_GPCsites-2018-12-18-SX.sql
 Execution order: 6
+Tables required: 
++FinalStatFinal1_local;
++PCORNET_CDM.DEATH_CAUSE;
+Table produced:
++NextD_Death_Cause
+Comments: Death Cause Table
+Update date: 12/18/2018
+
+Script name: NextD_Epic_InsuranceCoveragePerPatient_pro-ENROLLMENTtable-2018-12-17-SX.sql
+Execution order: 7
 Tables required: 
 +FinalStatsFinal1_local;
 +date_unshifts;
@@ -153,7 +163,7 @@ Comments: This code is not actual code meant to be used by sites. This is rather
 Please, make sure you return table with insurance mapped into following categories:
 1.Medicare
 2.Medicaid
-3.Other Government 
+3.Other Governm  ent 
 4.Department of corrections
 5.Private health insurance
 6.Blue cross/Blue shield
@@ -167,7 +177,7 @@ OT.Other
 Update date: 12/7/2018
 
 Script name: NextD_SES_GPCsites-2018-12-17-AF.sql
-Execution order: 7
+Execution order: 8
 Tables required: 
 +FinalStatsFinal1_local;
 +Local table with information on geocoding accuracy, and GEOIIDs
