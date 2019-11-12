@@ -187,7 +187,7 @@ Table produced:
 Comments: SES table
 Update date: 12/17/2018
 
-Script name: NextD_FACILITY_GPCsites-2019-11-12-AF.sql
+Script name: NextD_FACILITY_GPCsites-2019-11-12-SX.sql
 Execution order: 9
 Tables required:
 +NEXTD_ENCOUNTER
