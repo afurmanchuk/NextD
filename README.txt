@@ -177,8 +177,19 @@ UN.Unknown
 OT.Other
 Update date: 12/7/2018
 
-Script name: NextD_SES_GPCsites-2018-12-17-AF.sql
+Script name: NextD_IDX_InsuranceCoveragePerEncounter_pro-ENROLLMENTtable-2019-11-12-SX.sql
 Execution order: 8
+Tables required: 
++FinalStatsFinal1_local;
++date_unshifts;
++PCORNET_CDM.ENROLLEMENT
++Table produced:
++NextD_IDX
+Comments: 
+Update date: 11/12/2019
+
+Script name: NextD_SES_GPCsites-2018-12-17-AF.sql
+Execution order: 9
 Tables required: 
 +FinalStatsFinal1_local;
 +Local table with information on geocoding accuracy, and GEOIIDs
@@ -188,9 +199,11 @@ Comments: SES table
 Update date: 12/17/2018
 
 Script name: NextD_FACILITY_GPCsites-2019-11-12-SX.sql
-Execution order: 9
+Execution order: 10
 Tables required:
 +NEXTD_ENCOUNTER
 +Internal source table with FACILITY addresses
+Table produced:
++NextD_FACILITY
 Comments: 
 Update date: 11/12/2019
