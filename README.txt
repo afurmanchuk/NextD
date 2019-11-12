@@ -10,6 +10,7 @@ https://www.dropbox.com/home/diabetes%20project%20(working%20docs)/Definitions_S
 <Intellectual credit: The sql codes ending with XS are oracle adaptation of the code and description was kindly performed by KUMC team. Codes eneding up with AF are modifications or earlier vesions of oracle codes.>
 /*********************************************************************/
 The data extraction deadline is 2019-12-18. 
+Study period: 2010-01-01 - 2019-11-31 (or current date)
 
 Note: The proposed order of execution could be used with following exceptions:
 *There is no particular execution orders among 3.1 - 3.5, as long as tables at step 1 and 2 are collected
