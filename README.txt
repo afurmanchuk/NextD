@@ -1,5 +1,5 @@
 /*********************************************************************/
-This repository is meant to be used for the second nextD extraction round.
+This repository is meant to be used for the third nextD extraction round.
 
 Description of Next-D project and all relevant details on data extraction beyond sql codes and this README file could be found at:
 https://www.dropbox.com/home/diabetes%20project%20(working%20docs)/Definitions_StudySamples%26Variables?preview=Definitions_Part1-2018-12-06-af.docx
@@ -9,12 +9,7 @@ https://www.dropbox.com/home/diabetes%20project%20(working%20docs)/Definitions_S
 
 <Intellectual credit: The sql codes ending with XS are oracle adaptation of the code and description was kindly performed by KUMC team. Codes eneding up with AF are modifications or earlier vesions of oracle codes.>
 /*********************************************************************/
-The data extraction is separated into two parts with deadlines provided accordingly: 
-
-Part 1 extraction (deadline -2018-01-05). Tables to be extracted are: 
-FinalStatsFinal1, NextD_Demographic, NextD_Encounter, NextD_Prescribing, NextD_Dispensing, NextD_Vital, NextD_Labs, NextD_Diagnosis, NextD_Procedure.
-Part 2 extraction (deadline -2018-02-15). Tables to be extracted are: 
-NextD_Provider, NextD_Enrollement, NextD_SES.
+The data extraction deadline is 2019-12-18. 
 
 Note: The proposed order of execution could be used with following exceptions:
 *There is no particular execution orders among 3.1 - 3.5, as long as tables at step 1 and 2 are collected
@@ -190,3 +185,11 @@ Table produced:
 +NextD_SES
 Comments: SES table
 Update date: 12/17/2018
+
+Script name: NextD_FACILITY_GPCsites-2019-11-12-AF.sql
+Execution order: 9
+Tables required:
++NEXTD_ENCOUNTER
++Internal source table with FACILITY addresses
+Comments: 
+Update date: 11/12/2019
