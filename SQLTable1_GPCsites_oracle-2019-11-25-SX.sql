@@ -1,25 +1,34 @@
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
------   This code is adoption of NU t-sql code for oracle kindly done by Alexander Stoddard (MCW)         -----
------   In case of questions, please, contact MCW or NU via astoddard@mcw.edu or                          -----
------   alona.furmanchuk@northwestern.edu, correspondingly.                                               -----
+-----  This code is adoption of NU t-sql code for oracle kindly done by Alexander Stoddard (MCW)          -----
+-----  In case of questions, please, contact MCW or NU via astoddard@mcw.edu or                           -----
+-----  alona.furmanchuk@northwestern.edu or xsong@kumc.edu, correspondingly.                              -----
 -----																				                      -----
------  These changes modifications from the version listed                                                ----- 
+-----  Some archived changes or modifications can be found from the following github link:                ----- 
 -----  at https://github.com/kumc-bmi/nextd-study-support/commit/72a8ffc6bf63539152de16d75cf054cc42f01411 -----
+-----                                                                                                     -----
+-----  Extraction is based on CDM version after v6.0, which uses unshifted dates                          -----
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
 -----                                    Code producing Table 1:                                          -----  
 -----           Study sample, flag for established patient, T2DM sample, Pregnancy events                 -----  
 --------------------------------------------------------------------------------------------------------------- 
 /* Tables used in this code: 
-- DIAGNOSIS,ENCOUNTER,DEMOGRAPHIC,PROCEDURES,LAB_RESULT_CM,PRESCRIBING tables from PCORNET.
-- date_unshifts collected ahead
-
-Assumes all patient and encounter data is available in the GPC PCORNET CDM tables.
-
+- 1. &&PCORNET_CDM.DEMOGRAPHIC
+- 2. &&PCORNET_CDM.DIAGNOSIS
+- 3. &&PCORNET_CDM.ENCOUNTER
+- 4. &&PCORNET_CDM.PROCEDURES
+- 5. &&PCORNET_CDM.LAB_RESULT_CM
+- 6. &&PCORNET_CDM.PRESCRIBING
+- 7. &&PCORNET_CDM.DEATH
+- 8. &&I2B2_ID.visit_dimension
 */
 
-/*modification are marked as '--modified'*/
+/*global parameters:
+ &&PCORNET_CDM: name of CDM schema (>v5.0)
+ &&I2B2_ID: name of local identified i2b2 schema
+ "KUMC specific" fields: may need to be adjusted with local EMR values
+ */
 
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
@@ -51,20 +60,18 @@ WITH encs_with_age_at_visit AS (
    ON e.PATID = d.PATID
 )
    ,summarized_encounters AS (
-   SELECT sh.PATID
-         ,sh.ENCOUNTERID
-         ,sh.BIRTH_DATE
-         ,sh.ADMIT_DATE
-         ,count(DISTINCT TRUNC(sh.ADMIT_DATE)) OVER (PARTITION BY sh.PATID) AS cnt_distinct_enc_days
-         ,row_number() OVER (PARTITION BY sh.PATID ORDER BY sh.ADMIT_DATE) AS rn
-         ,sh.ENC_TYPE
-         ,sh.age_at_visit
-   FROM encs_with_age_at_visit sh
-   WHERE sh.age_at_visit between 18 AND 89
-   AND   sh.ENC_TYPE in ('IP','ED','EI','IS','OS','AV')  --modified: added 'EI'
-   AND exists (select 1 from date_unshifts ds  --modified: apply date shifts so that it will be the real dates that is within the study period
-               where ds.PATID = sh.PATID and
-                     sh.ADMIT_DATE+ds.days_shift BETWEEN DATE '2010-01-01' AND CURRENT_DATE) -- alter date range if not using the study defaults
+   SELECT PATID
+         ,ENCOUNTERID
+         ,BIRTH_DATE
+         ,ADMIT_DATE
+         ,count(DISTINCT TRUNC(ADMIT_DATE)) OVER (PARTITION BY PATID) AS cnt_distinct_enc_days
+         ,row_number() OVER (PARTITION BY PATID ORDER BY ADMIT_DATE) AS rn
+         ,ENC_TYPE
+         ,age_at_visit
+   FROM encs_with_age_at_visit
+   WHERE age_at_visit between 18 AND 89
+   AND   ENC_TYPE in ('IP','ED','EI','IS','OS','AV') 
+   AND   ADMIT_DATE BETWEEN DATE '2010-01-01' AND CURRENT_DATE
 )
 SELECT PATID
       ,ENCOUNTERID
@@ -137,11 +144,7 @@ WITH preg_related_dx AS (
         ((dia.ADMIT_DATE - d.BIRTH_DATE) / 365.25 ) BETWEEN 18 AND 89
       )
       -- time frame restriction
-      AND exists
-      (select 1 from date_unshifts ds --modified: apply date shifts so that it will be the real dates that is within the study period
-       where ds.PATID = dia.PATID and
-             dia.ADMIT_DATE+ds.days_shift BETWEEN DATE '2010-01-01' AND CURRENT_DATE
-      )
+      AND dia.ADMIT_DATE BETWEEN DATE '2010-01-01' AND CURRENT_DATE
       -- eligible patients
       AND
       (
@@ -179,13 +182,9 @@ WITH preg_related_dx AS (
         ((p.ADMIT_DATE - d.BIRTH_DATE) / 365.25 ) BETWEEN 18 AND 89
       )
       -- time frame restriction
-      AND exists
-      (select 1 from date_unshifts ds --modified: apply date shifts so that it will be the real dates that is within the study period
-       where ds.PATID = p.PATID and
-             p.ADMIT_DATE+ds.days_shift BETWEEN DATE '2010-01-01' AND CURRENT_DATE
-      )
-      AND
+      AND p.ADMIT_DATE BETWEEN DATE '2010-01-01' AND CURRENT_DATE
       -- eligible patients
+      AND
       (
         EXISTS (SELECT 1 FROM NextD_first_visit v WHERE p.PATID = v.PATID)
       )
@@ -239,10 +238,6 @@ WHERE NOT EXISTS (SELECT 1
 
 CREATE INDEX NextD_preg_masked_enc_idx ON NextD_preg_masked_encounters (ENCOUNTERID);
 
--- Oracle code equivalent to FinalStatTable01 generation
--- is deferred until the completed FinalStatTable1 is created
--- at the end of this file
-
 
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
@@ -271,7 +266,7 @@ SELECT l.PATID
       ,l.LAB_LOINC
       ,l.RESULT_NUM
       ,l.RESULT_UNIT
-      ,l.RAW_LAB_NAME -- modified: removed LAB_NAME (deprecated) and added RAW_LAB_NAME
+      ,l.RAW_LAB_NAME
       ,l.RAW_FACILITY_CODE 
 FROM "&&PCORNET_CDM".LAB_RESULT_CM l
 WHERE ( 
@@ -287,7 +282,7 @@ WHERE (
                         '41995-2','59261-8','62388-4','71875-9','54039-3'
                         )
         OR
-        /*--modified: the new column RAW_FACILITY_CODE (available after v4.0) can be used to identify 
+        /*--the new column RAW_FACILITY_CODE (available after v4.0) can be used to identify 
             additional lab based on local i2b2 concepts*/
         l.RAW_FACILITY_CODE in (
                                 'KUH|COMPONENT_ID:2034' --KUMC specific
@@ -351,15 +346,13 @@ SELECT l.PATID
       ,l.LAB_LOINC
       ,l.RESULT_NUM
       ,l.RESULT_UNIT
-      ,l.RAW_LAB_NAME -- modified: removed LAB_NAME (deprecated) and added RAW_LAB_NAME
+      ,l.RAW_LAB_NAME
       ,l.RAW_FACILITY_CODE 
 FROM "&&PCORNET_CDM".LAB_RESULT_CM l
 WHERE (l.LAB_LOINC IN (
                        '1558-6', '10450-5', '1554-5', '17865-7', '35184-1'
                        )
-       OR
-        /*--modified: the new column RAW_FACILITY_CODE (available after v4.0) can be used to identify 
-            additional lab based on local i2b2 concepts*/       
+       OR  
        l.RAW_FACILITY_CODE in (
                                'KUH|COMPONENT_ID:2035' -- KUMC specific
                                )
@@ -421,7 +414,7 @@ SELECT l.PATID
       ,l.LAB_LOINC
       ,l.RESULT_NUM
       ,l.RESULT_UNIT
-      ,l.RAW_LAB_NAME -- modified: removed LAB_NAME (deprecated) and added RAW_LAB_NAME
+      ,l.RAW_LAB_NAME
       ,l.RAW_FACILITY_CODE 
 FROM "&&PCORNET_CDM".LAB_RESULT_CM l
 WHERE (
@@ -430,8 +423,6 @@ WHERE (
                        '10450-5','17865-7','1554-5','6777-7','54246-4','41652-9'
                        )
        OR
-        /*--modified: the new column RAW_FACILITY_CODE (available after v4.0) can be used to identify 
-            additional lab based on local i2b2 concepts*/   
        l.RAW_FACILITY_CODE in (
                                'KUH|COMPONENT_ID:2010','KUH|COMPONENT_ID:2011','KUH|COMPONENT_ID:2012',
                                'KUH|COMPONENT_ID:2036','KUH|COMPONENT_ID:2037','KUH|COMPONENT_ID:2038',
@@ -1119,13 +1110,12 @@ GROUP BY PATID;
 ---------------------------------------------------------------------------------------------------------------
 ----                    Set up PCORNET_CDM specific EstablishedPatient flag                               -----
 ---------------------------------------------------------------------------------------------------------------
---modified: need to hit local i2b2 for this flag, for CDM may be truncated at 2010-01-01
-/*my solution is to obtain this flag while collecting date_unshifts. 
-  Further details are included in the NextD_Date_Recovery.sql*/
+--Note: need to hit local identified i2b2 for this flag, especially for CDM truncated at 2010-01-01
+            
 CREATE TABLE NextD_EstablishedPatient AS
-SELECT DISTINCT PATID 
-FROM date_unshifts
-where first_enc_date < Date '2010-01-01' -- Adjust this if not using 2010-01-01 for study start date;
+SELECT DISTINCT patient_num PATID 
+FROM "&&I2B2_ID".visit_dimension -- add "@server" at the end if the "&&I2B2_ID" schema is on a different server 
+where start_date < Date '2010-01-01' -- KUMC specific 
 ;
 
 CREATE INDEX NextD_Estabished_PATID_IDX ON NextD_EstablishedPatient(PATID);
@@ -1139,7 +1129,7 @@ CREATE INDEX NextD_Estabished_PATID_IDX ON NextD_EstablishedPatient(PATID);
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
 
-CREATE TABLE FinalStatTable1_local AS 
+CREATE TABLE FinalStatsTable1_local AS 
 WITH combined_onset_dates AS (
 SELECT a.PATID, a.EventDate
 FROM NextD_DX_Visit_final_FirstPair a
@@ -1170,41 +1160,50 @@ SELECT PATID, MIN(EventDate) AS DMonsetDate
 FROM combined_onset_dates
 GROUP BY PATID
 )
+-- duplicates exist due to different DEATH_SOURCE
+   ,death_unique as (
+SELECT PATID, MAX(DEATH_DATE) DEATH_DATE
+FROM "&&PCORNET_CDM".DEATH
+WHERE DEATH_DATE < CURRENT_DATE
+group by PATID
+)
 SELECT v.PATID
-      ,v.NextD_first_visit + ds.days_shift AS FirstVisit -- modified: shifted dates back to real dates
+      ,v.NextD_first_visit AS FirstVisit
       ,v.cnt_distinct_enc_days AS NumberOfVisits 
-      ,v.BIRTH_DATE + ds.days_shift AS BIRTH_DATE -- modified: shifted dates back to real dates
-      ,d.DEATH_DATE + ds.days_shift AS DEATH_DATE -- modified: shifted dates back to real dates
-      ,p."1" + ds.days_shift  AS Pregnancy1_date -- modified: shifted dates back to real dates
-      ,p."2" + ds.days_shift  AS Pregnancy2_date -- modified: shifted dates back to real dates
-      ,p."3" + ds.days_shift  AS Pregnancy3_date -- modified: shifted dates back to real dates
-      ,p."4" + ds.days_shift  AS Pregnancy4_date -- modified: shifted dates back to real dates
-      ,p."5" + ds.days_shift  AS Pregnancy5_date -- modified: shifted dates back to real dates
-      ,p."6" + ds.days_shift  AS Pregnancy6_date -- modified: shifted dates back to real dates
-      ,p."7" + ds.days_shift  AS Pregnancy7_date -- modified: shifted dates back to real dates
-      ,p."8" + ds.days_shift  AS Pregnancy8_date -- modified: shifted dates back to real dates
-      ,p."9" + ds.days_shift  AS Pregnancy9_date -- modified: shifted dates back to real dates
-      ,p."10" + ds.days_shift AS Pregnancy10_date -- modified: shifted dates back to real dates
-      ,dm.DMonsetDate + ds.days_shift AS DMonsetDate -- modified: shifted dates back to real dates
+      ,pt.BIRTH_DATE  AS BIRTH_DATE -- modified: shifted dates back to real dates
+      ,d.DEATH_DATE AS DEATH_DATE -- modified: shifted dates back to real dates
+      ,p."1" AS Pregnancy1_date -- modified: shifted dates back to real dates
+      ,p."2" AS Pregnancy2_date -- modified: shifted dates back to real dates
+      ,p."3" AS Pregnancy3_date -- modified: shifted dates back to real dates
+      ,p."4" AS Pregnancy4_date -- modified: shifted dates back to real dates
+      ,p."5" AS Pregnancy5_date -- modified: shifted dates back to real dates
+      ,p."6" AS Pregnancy6_date -- modified: shifted dates back to real dates
+      ,p."7" AS Pregnancy7_date -- modified: shifted dates back to real dates
+      ,p."8" AS Pregnancy8_date -- modified: shifted dates back to real dates
+      ,p."9" AS Pregnancy9_date -- modified: shifted dates back to real dates
+      ,p."10" AS Pregnancy10_date -- modified: shifted dates back to real dates
+      ,dm.DMonsetDate AS DMonsetDate -- modified: shifted dates back to real dates
       ,CASE WHEN estab.PATID IS NOT NULL
             THEN 1
             ELSE NULL
        END AS EstablishedPatientFlag
 FROM NextD_first_visit v
 LEFT JOIN NextD_FinalPregnancy p ON v.PATID = p.PATID
-LEFT JOIN "&&PCORNET_CDM".DEATH d ON v.PATID = d.PATID
+LEFT JOIN "&&PCORNET_CDM".DEMOGRAPHIC pt on pt.PATID = v.PATID
+LEFT JOIN death_unique d ON v.PATID = d.PATID
 LEFT JOIN DM_OnsetDates dm ON v.PATID = dm.PATID
 LEFT JOIN NextD_EstablishedPatient estab ON v.PATID = estab.PATID
-left join date_unshifts ds on v.PATID = ds.PATID
 ;
 
+
+/*for better efficiency*/
+create index FinalStatsTable1_PAT_IDX on FinalStatsTable1_local(PATID);
+
+---------------------------------------------------------------------------------------------------------------
+-----                   Deidentified the final table into IRB-approved deliverable version                -----
 ---------------------------------------------------------------------------------------------------------------
 
-create table FinalStatTable1 as -- modified: this is the final output table
---modified: remove all '[]' 
---modified: replace 'datediff' by oracle-specific expression
---modified: change all 'NextD_first_visit' to 'FirstVisit'
---modifier: added numbers to duplicated 'Pregnancy_date_YEAR', 'Pregnancy_date_MONTH', 'Pregnancy_date_DELTA_DAYS'
+create table FinalStatsTable1 as
 select PATID
       ,cast(to_char(FirstVisit,'YYYY') as INTEGER) as FirstVisit_YEAR, '|' as Pipe1 
       ,cast(to_char(FirstVisit,'MM') as INTEGER) as FirstVisit_MONTH, '|' as Pipe2
@@ -1263,11 +1262,12 @@ select PATID
       ,cast(BIRTH_DATE - FirstVisit as INTEGER) as BIRTH_DATE_DELTA_DAYS, '|' as Pipe42
       
       ,EstablishedPatientFlag, 'ENDALONAEND' as ENDOFLINE			      
-FROM FinalStatTable1_local;
+FROM FinalStatsTable1_local;
 
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
------  Please, save table FinalStatTable1 locally since it will be used in all further data extractions  ------
+----- 1. Save table FinalStatsTable1_local locally since it will be used in all further data extractions ------
+----- 2. Download table FinalStatsTable1 as .csv or .dsv file for final delivery                         ------
 ---------------------------------------------------------------------------------------------------------------
 
- 
+
