@@ -1,17 +1,18 @@
 /******************************************************************************************************************/
-/* NextD Clinical Variable Extractions                                                                            */
-/* - require: 1. NEXTD_ENCOUNTER: NextD Encounter table                                                           */
-/*                                                                                                                */
-/* - We assume PCORNET_CDM is set appropriate for your site; for example, define PCORNET_CDM = PCORNET_CDM_C5R2   */
+/* NextD Clinical Variable Extractions - Diagnosis Table                                                          */
+/* exclude pregancy                                                                                               */
 /******************************************************************************************************************/
 
-/*Note: 'KUMC specific' issue are marked as such*/
+/* Tables required in this code: 
+- 1. NEXTD_ENCOUNTER: output table of NextD_Encounter_GPCsites-2019-11-25-SX.sql 
+- 2. NextD_preg_masked_encounters: an intermediate table with non-pregnacy encounters
+- 3. &&PCORNET_CDM.DIAGNOSIS                                  
+*/
 
-/**************************************************************************/
-/***********************Table 7 -- Diagnoses*******************************/
-/**************************************************************************/
-/*for better efficiency*/
-create index NextD_ENC_PAT_IDX on NEXTD_ENCOUNTER(ENCOUNTERID);
+/*global parameters:
+ &&PCORNET_CDM: name of CDM schema (>v5.0)
+ "KUMC specific" fields: may need to be adjusted with local EMR values
+*/
 
 create table NEXTD_DIAGNOSIS as
 select dx.PATID,'|' as Pipe1
@@ -25,7 +26,15 @@ select dx.PATID,'|' as Pipe1
       ,enc.ENC_TYPE,'|' as Pipe9
       ,enc.ADMIT_YEAR,'|' as Pipe10
       ,enc.ADMIT_MONTH,'|' as Pipe11
-      ,enc.ADMIT_Days_from_FirstEnc,'ENDALONAEND' as ENDOFLINE
-from /*provide current PCORNET_CDM.Diagnosis table here*/"&&PCORNET_CDM".DIAGNOSIS dx
+      ,enc.ADMIT_Days_from_FirstEnc
+      ,'ENDALONAEND' as ENDOFLINE
+from "&&PCORNET_CDM".DIAGNOSIS dx
 join NEXTD_ENCOUNTER enc on enc.ENCOUNTERID = dx.ENCOUNTERID
+where exists (select 1 from NextD_preg_masked_encounters exclud_pregn
+              where dx.ENCOUNTERID = exclud_pregn.ENCOUNTERID)
 ;
+
+---------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------
+----- 1. Download table NEXTD_DIAGNOSIS as .csv file for final delivery                                  ------
+---------------------------------------------------------------------------------------------------------------
