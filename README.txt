@@ -19,7 +19,9 @@ Note: The proposed order of execution could be used with following exceptions:
 
 Table numbering inside of sql codes corresponds to numbering in NextD data dictionary and might be different from proposed below order of execution.
 /*********************************************************************/
-
+File name: Execution Plan.xlsx
+Comments: contains tabulated format of readme file with less detailed information on other links
+Update date: 11/26/2019
 
 Script name: SQLTable1_GPCsites_oracle-2019-11-25-SX.sql
 Execution order: 1
@@ -37,7 +39,7 @@ Table produced:
 +FinalStatsTable1_local;
 +FinalStatsTable1;
 Comments: FinalStatsTable1_local should include full real dates for future reference; FinalStatsTable1 is date-blinded
-Update date: 11/25/2019
+Update date: 11/26/2019
 
 /*********************************************************************/
 
@@ -50,7 +52,7 @@ Tables required:
 Table produced:
 +NextD_Demographic
 Comments: Demograhic table. Variable PAT_PREF_LANGUAGE_SPOKEN is no longer collected from source system.
-Update date: 11/25/2019
+Update date: 11/26/2019
 
 /*********************************************************************/
 
@@ -62,7 +64,7 @@ Tables required:
 Table produced:
 +NextD_Encounter
 Comments: Encounter table (include pregnancy)
-Update date: 11/25/2019
+Update date: 11/26/2019
 
 /*********************************************************************/
 
@@ -75,7 +77,7 @@ Tables required:
 Table produced:
 +NextD_Prescribing
 Comments: Prescribing table (exclude pregancy)
-Update date: 11/25/2019
+Update date: 11/26/2019
 
 /*********************************************************************/
 
@@ -88,7 +90,7 @@ Tables required:
 Table produced:
 +NextD_Dispensing
 Comments: Dispensing table (exclude pregancy)
-Update date: 11/25/2019
+Update date: 11/26/2019
 
 /*********************************************************************/
 
@@ -101,7 +103,7 @@ Tables required:
 Table produced:
 +NextD_Vital
 Comments: Vital table (exclude pregancy)
-Update date: 11/25/2019
+Update date: 11/26/2019
 
 /*********************************************************************/
 
@@ -114,7 +116,7 @@ Tables required:
 Table produced:
 +NextD_Labs
 Comments: Lab table (exclude pregancy)
-Update date: 11/25/2019
+Update date: 11/26/2019
 
 /*********************************************************************/
 
@@ -127,7 +129,7 @@ Tables required:
 Table produced:
 +NextD_Diagnosis
 Comments: Diagnosis table (exclude pregancy)
-Update date: 11/25/2019
+Update date: 11/26/2019
 
 /*********************************************************************/
 
@@ -141,7 +143,7 @@ Tables required:
 Table produced:
 +NextD_Procedure
 Comments: Procedure table (include pregnancy)
-Update date: 11/25/2019
+Update date: 11/26/2019
 
 /*********************************************************************/
 
@@ -155,7 +157,7 @@ Tables required:
 Table produced:
 +NextD_Provider
 Comments: Provider table
-Update date: 11/25/2019
+Update date: 11/26/2019
 
 /*********************************************************************/
 
@@ -173,7 +175,7 @@ Tables required:
 Table produced:
 +NEXTD_Enr_EPIC
 Comments: This code is not actual code meant to be used by sites. This is rather prototype proposed to be adopted by sites according tro internal structure. The adopted code is expected to produce Enrollement table based on Epic tables. 
-Update date: 11/25/2019
+Update date: 11/26/2019
 
 
 /*********************************************************************/
@@ -188,7 +190,7 @@ Tables required:
 Table produced:
 +NEXTD_Enr_IDX
 Comments: This code is not actual code meant to be used by sites. This is rather prototype proposed to be adopted by sites according tro internal structure. The adopted code is expected to produce Enrollement table based on IDX tables.
-Update date: 11/25/2019
+Update date: 11/26/2019
 
 /*********************************************************************/
 
@@ -212,6 +214,6 @@ Tables required:
 Table produced:
 +NextD_FACILITY
 Comments: 
-Update date: 11/25/2019
+Update date: 11/26/2019
 
 /*********************************************************************/
