@@ -1,18 +1,19 @@
 /******************************************************************************************************************/
-/* NextD Clinical Variable Extractions                                                                            */
-/* - require: 1. FinalStatTable1_local: the local version where dates neither shifted nor masked                  */
-/*            2. date_unshifts: an intermediate table for recovering real dates                                   */
-/* - We assume PCORNET_CDM is set appropriate for your site; for example, define PCORNET_CDM = PCORNET_CDM_C5R2   */
+/* NextD Clinical Variable Extractions - Lab Table                                                                */
+/* exclude pregancy                                                                                               */
 /******************************************************************************************************************/
 
-/*Note: 'KUMC specific' issue are marked as such*/
+/* Tables required in this code: 
+- 1. FinalStatsTable1_local: the local version of FinalStatsTable1 (output of SQLTable1_GPCsites_orcale-2019-11-25-SX.sql)
+- 2. NextD_distinct_preg_events: an intermediate table with all pregnancy events
+- 3. &&PCORNET_CDM.LAB_RESULT_CM                                     
+*/
 
+/*global parameters:
+ &&PCORNET_CDM: name of CDM schema (>v5.0)
+ "KUMC specific" fields: may need to be adjusted with local EMR values
+*/
 
-/**********************************************************************/
-/***********************Table 6 -- Labs *******************************/
-/**********************************************************************/
-/*for better efficiency*/
-create index FinalStatTable1_PAT_IDX on FinalStatTable1_local(PATID);
 
 create table nextd_labs_loinc as
 select column_value lab_loinc, 'CHOLESTEROL' lab_name
@@ -82,13 +83,13 @@ from table(sys.ODCIVarchar2List('45225-0','45171-6','5265-4','63571-4','56687-7'
 ;
 
 
-create table NEXTD_LABS_local as
+create table NEXTD_LABS as
 with lab_with_age_realdate as (
 select l.PATID
       ,l.ENCOUNTERID
       ,l.LAB_RESULT_CM_ID
-      ,l.LAB_ORDER_DATE + ds.days_shift as REAL_LAB_ORDER_DATE
-      ,l.SPECIMEN_DATE + ds.days_shift as REAL_SPECIMEN_DATE 
+      ,l.LAB_ORDER_DATE
+      ,l.SPECIMEN_DATE 
       ,l.SPECIMEN_SOURCE 
       ,l.RESULT_QUAL
       ,l.RESULT_NUM
@@ -105,46 +106,16 @@ select l.PATID
       ,l.LAB_LOINC
       ,l.RESULT_LOC
       ,lc.LAB_NAME
-      ,round((l.LAB_ORDER_DATE+ds.days_shift-fst.BIRTH_DATE)/365.25,2) as age_at_event
-from /*provide current PCORNET_CDM.Lab_Result_CM table here*/"&&PCORNET_CDM".LAB_RESULT_CM l
-join FinalStatTable1_local fst on fst.PATID = l.PATID
-join date_unshifts ds on ds.PATID = l.PATID
+      ,round((l.LAB_ORDER_DATE - fst.BIRTH_DATE)/365.25,2) as age_at_event
+from "&&PCORNET_CDM".LAB_RESULT_CM l
+join FinalStatsTable1_local fst on fst.PATID = l.PATID
 join nextd_labs_loinc lc on lc.LAB_LOINC=l.LAB_LOINC
 )
-    ,pregn_dates as (
-select PATID
-      ,PREGNANCY_DATE
-from FinalStatTable1_local
-unpivot 
- (
-  PREGNANCY_DATE
-  for PREGNANCY_NO
-    in (Pregnancy1_date
-       ,Pregnancy2_date
-       ,Pregnancy3_date
-       ,Pregnancy4_date
-       ,Pregnancy5_date
-       ,Pregnancy6_date
-       ,Pregnancy7_date
-       ,Pregnancy8_date
-       ,Pregnancy9_date
-       ,Pregnancy10_date
-       )
- )
-)
-    ,pregn_exclud as (
-select lrd.LAB_RESULT_CM_ID
-from lab_with_age_realdate lrd
-where lrd.age_at_event between 18 and 89 and                                
-      lrd.REAL_LAB_ORDER_DATE between Date '2010-01-01' and CURRENT_DATE and 
-      exists (select 1 from pregn_dates pd                                 
-                  where pd.PATID = lrd.PATID and
-                        (abs(lrd.REAL_LAB_ORDER_DATE - pd.PREGNANCY_DATE) <= 365))
-)
+   ,lab_pregn_exclud as (
 select lrd.PATID
       ,lrd.ENCOUNTERID
-      ,lrd.REAL_LAB_ORDER_DATE
-      ,lrd.REAL_SPECIMEN_DATE 
+      ,lrd.LAB_ORDER_DATE
+      ,lrd.SPECIMEN_DATE 
       ,lrd.SPECIMEN_SOURCE 
       ,lrd.RESULT_QUAL
       ,lrd.RESULT_NUM
@@ -162,22 +133,21 @@ select lrd.PATID
       ,lrd.RESULT_LOC
       ,lrd.LAB_NAME
 from lab_with_age_realdate lrd
-where lrd.age_at_event between 18 and 89 and                                  /*age restriction*/
-      lrd.REAL_LAB_ORDER_DATE between Date '2010-01-01' and CURRENT_DATE and  /*time restriction*/
-      lrd.LAB_RESULT_CM_ID not in (select LAB_RESULT_CM_ID from pregn_exclud) /*pregenancy exclusion*/
-;
-
-
-create table NEXTD_LABS as
+where lrd.age_at_event between 18 and 89 and                             /*age restriction*/
+      lrd.LAB_ORDER_DATE between Date '2010-01-01' and CURRENT_DATE and  /*time restriction*/
+      not exists (select 1 from NextD_distinct_preg_events pd            /*pregenancy exclusion*/                 
+                  where pd.PATID = lrd.PATID and
+                        (abs(lrd.LAB_ORDER_DATE - pd.ADMIT_DATE) <= 365)) 
+)
 --time blinding
 select fst.PATID,'|' as Pipe1
       ,el.ENCOUNTERID,'|' as Pipe2
-      ,cast(to_char(el.REAL_LAB_ORDER_DATE,'YYYY') as INTEGER) LAB_ORDER_YEAR,'|' as Pipe3
-      ,cast(to_char(el.REAL_LAB_ORDER_DATE,'MM') as INTEGER) LAB_ORDER_MONTH,'|' as Pipe4
-      ,el.REAL_LAB_ORDER_DATE - fst.FirstVisit as LAB_ORDER_Days_from_FirstEnc,'|' as Pipe5
-      ,cast(to_char(el.REAL_SPECIMEN_DATE ,'YYYY') as INTEGER) SPECIMEN_YEAR,'|' as Pipe6
-      ,cast(to_char(el.REAL_SPECIMEN_DATE ,'MM') as INTEGER) SPECIMEN_MONTH,'|' as Pipe7
-      ,round(el.REAL_SPECIMEN_DATE  - fst.FirstVisit) as SPECIMEN_Days_from_FirstEnc,'|' as Pipe8
+      ,cast(to_char(el.LAB_ORDER_DATE,'YYYY') as INTEGER) LAB_ORDER_YEAR,'|' as Pipe3
+      ,cast(to_char(el.LAB_ORDER_DATE,'MM') as INTEGER) LAB_ORDER_MONTH,'|' as Pipe4
+      ,el.LAB_ORDER_DATE - fst.FirstVisit as LAB_ORDER_Days_from_FirstEnc,'|' as Pipe5
+      ,cast(to_char(el.SPECIMEN_DATE ,'YYYY') as INTEGER) SPECIMEN_YEAR,'|' as Pipe6
+      ,cast(to_char(el.SPECIMEN_DATE ,'MM') as INTEGER) SPECIMEN_MONTH,'|' as Pipe7
+      ,round(el.SPECIMEN_DATE  - fst.FirstVisit) as SPECIMEN_Days_from_FirstEnc,'|' as Pipe8
       ,el.SPECIMEN_SOURCE,'|' as Pipe9
       ,el.RESULT_QUAL,'|' as Pipe10
       ,el.RESULT_NUM,'|' as Pipe11
@@ -193,9 +163,16 @@ select fst.PATID,'|' as Pipe1
       ,el.NORM_MODIFIER_HIGH,'|' as Pipe21
       ,el.LAB_LOINC,'|' as Pipe22
       ,el.RESULT_LOC,'|' as Pipe23
-      ,el.LAB_NAME,'ENDALONAEND' as ENDOFLINE
-from FinalStatTable1_local fst
-left join NEXTD_LABS_local el
+      ,el.LAB_NAME
+      ,'ENDALONAEND' as ENDOFLINE
+from FinalStatsTable1_local fst
+join lab_pregn_exclud el
 on el.PATID = fst.PATID          
 ; 
+
+
+---------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------
+----- 1. Download table NEXTD_LAB as .csv  file for final delivery                                     ------
+---------------------------------------------------------------------------------------------------------------
 
