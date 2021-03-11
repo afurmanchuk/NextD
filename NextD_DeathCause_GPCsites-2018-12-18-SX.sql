@@ -8,12 +8,12 @@
 2. DEATH_CAUSE table from PCORNET. */
 ---------------------------------------------------------------------------------------------------------------
 use /*provide here the name of PCORI database here: */PCORI_SAS;
-select c.PATID,
-		b.DEATH_CAUSE, 
-		b.DEATH_CAUSE_CODE,
-		b.DEATH_CAUSE_TYPE ,
-		b.DEATH_CAUSE_SOURCE ,
-		b.DEATH_CAUSE_CONFIDENCE 
+select c.PATID,'|' as PIPIE1,
+		b.DEATH_CAUSE, '|' as PIPIE2,
+		b.DEATH_CAUSE_CODE,'|' as PIPIE3,
+		b.DEATH_CAUSE_TYPE ,'|' as PIPIE4,
+		b.DEATH_CAUSE_SOURCE ,'|' as PIPIE5,
+		b.DEATH_CAUSE_CONFIDENCE , 'ENDALONAEND' as ENDLINE
 into #NextD_DEATH_CAUSE_FINAL
 from /* provide name of table 1 here: */ #FinalTable1 c 
 left join [dbo].[DEATH_CAUSE] b on c.PATID=b.PATID;
