@@ -6,8 +6,8 @@ Execution plan:
 2. The remaining 12 codes could be run in any order after the FinalTable1 is generated.
     Codes for producing NextD_PROVIDER will need extra mapping with provided along with this set files NPI2ToxonomycodeCorssWalk_2018-01-01_AF.zip 
 
-3.  Save each output table as a separate pipeline delimited file. Use “ALONAENDALONA” as line terminator. 
-Produced files should then be archived
+3. Save each output table as a separate pipeline delimited file. Use “ALONAENDALONA” as line terminator. 
+    Produced files should then be archived
 /*********************************************************************/
 /*********************************************************************/
 Study period: 2010-01-01 - 2020-12-31 
