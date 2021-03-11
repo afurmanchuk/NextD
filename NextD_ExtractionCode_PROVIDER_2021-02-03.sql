@@ -68,7 +68,7 @@ case when b.[Healthcare Provider Taxonomy Code_1] is not NULL and b.[Healthcare 
 					'163WR0400X','163WR1000X','163WS0121X','163WS0200X','163WU0100X','163WW0000X','163WW0101X','163WX0002X','163WX0003X','163WX0106X','163WX0200X','163WX0601X','163WX0800X','163WX1100X',
 					'163WX1500X','164W00000X','164X00000X') then 'OtherProvider'
 		else NULL 
-		end as IndividualProviderCategories,
+		end as IndividualProviderCategories
 		 		
 into #NextD_PROVIDER
 from [dbo].[PROVIDER]  a
