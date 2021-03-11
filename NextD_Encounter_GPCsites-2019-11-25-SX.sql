@@ -4,14 +4,7 @@
 --------------------------------------------------------------------------------------------------------------- 
 /* Tables for this eaxtraction: 
 1. Table 1 (named here #FinalStatTable1) with Next-D study sample IDs. See separate SQL code for producing this table.
-2. External to PCORNET table ([NextD].[dbo].[NEXT_OriginalNPIFROMBaseTaxonomy]) with NPI values on encounters of interest. 
-Warning: current remapping utilizing toxonomy codes. Sites expected to map NPIs into taxonomy codes by using:
-The full NPI online registry refreshed weekly could be found at https://npiregistry.cms.hhs.gov/
-or complete download of this registry could be found at https://www.cms.gov/Regulations-and-Guidance/Administrative-Simplification/NationalProvIdentStand/DataDissemination.html
-or use file https://www.dropbox.com/home/diabetes%20project%20(working%20docs)/Definitions_StudySamples%26Variables?preview=NPI2ToxonomycodeCorssWalk_2018-01-01_AF.zip (contains two columns: NPI and Taxonomy code)
-due to extreme size of registry I suggest to (i) collect complete list of NPI codes for the site; (ii) map those into Taxonomy codes and save them localy ; (iii) use this subset for all extraction codes utilizing NPI information.
-The table [NextD].[dbo].[NEXT_OriginalNPIFROMBaseTaxonomy] has two columns: [NPI] and [Healthcare Provider Taxonomy Code_1] 
-*/
+2. PCORI ENCOUNTER table*/
 --------------------------------------------------------------------------------------------------------------- 
 use /*provide here the name of PCORI database here: */PCORI_SAS;
 --------------------------------------------------------------------------------------------------------------- 
