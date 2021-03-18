@@ -35,7 +35,10 @@ declare @UpperAge int; declare @LowerAge int;set @UpperAge=89; set @LowerAge=18;
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
 -- Get all encounters for each patient sorted by date:
-select a.PATID,a.ADMIT_DATE as FirstVisit
+select a.PATID,
+	a.ADMIT_DATE as FirstVisit,	
+	year(dateadd(dd,a.ADMIT_DATE,'1960-01-01')) as ADMIT_DATE_YEAR,
+	month(dateadd(dd,a.ADMIT_DATE,'1960-01-01')) as ADMIT_DATE_MONTH
 into #FinalTable1
 from(select e.PATID,e.ADMIT_DATE,row_number() over (partition by e.PATID order by e.ADMIT_DATE asc) rn 
 	from dbo.ENCOUNTER e 
