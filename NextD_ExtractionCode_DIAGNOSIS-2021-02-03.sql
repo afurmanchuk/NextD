@@ -28,8 +28,8 @@ select c.PATID,
 		b.DX_SOURCE,
 		b.DX_ORIGIN,
 		b.ENC_TYPE,
-		year(b.ADMIT_DATE) as ADMIT_DATE_YEAR,
-		month(b.ADMIT_DATE) as ADMIT_DATE_MONTH,
+		year(dateadd(dd,b.ADMIT_DATE,'1960-01-01')) as ADMIT_DATE_DATE_YEAR,
+		month(dateadd(dd,b.ADMIT_DATE,'1960-01-01')) as ADMIT_DATE_DATE_MONTH,
 		b.ADMIT_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date
 into #NextD_DIAGNOSIS_FINAL 
 from /* provide name of table 1 here: */ #FinalTable1 c 
