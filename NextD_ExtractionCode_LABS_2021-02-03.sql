@@ -27,10 +27,10 @@ select c.PATID,
 		year(dateadd(dd,b.LAB_ORDER_DATE,'1960-01-01')) as LAB_ORDER_DATE_YEAR,
 		month(dateadd(dd,b.LAB_ORDER_DATE,'1960-01-01')) as LAB_ORDER_DATE_MONTH,
 		b.LAB_ORDER_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date1,
-		year(dateadd(dd,b.SPECIMEN_ORDER_DATE,'1960-01-01')) as SPECIMEN_ORDER_DATE_YEAR,
-		month(dateadd(dd,b.SPECIMEN_ORDER_DATE,'1960-01-01')) as SPECIMEN_ORDER_DATE_MONTH,
+		year(dateadd(dd,b.SPECIMEN_DATE,'1960-01-01')) as SPECIMEN_DATE_YEAR,
+		month(dateadd(dd,b.SPECIMEN_DATE,'1960-01-01')) as SPECIMEN_DATE_MONTH,
 		b.SPECIMEN_ORDER_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date2,
-		b.VALUE_NUMERIC as RESULT_NUM,
+		b.RESULT_NUM,
 		b.RESULT_UNIT,
 		b.RESULT_QUAL,
 		b.LAB_LOINC,
@@ -47,7 +47,7 @@ into #NextD_LABS_FINAL
 from /* provide name of table 1 here: */ #FinalTable1 c 
 join [dbo].[LAB_RESULT_CM] b on c.PATID=b.CAP_ID 
 join dbo.DEMOGRAPHIC d on c.PATID=d.PATID
-where b.VALUE_NUMERIC is not NULL 
+where b.RESULT_NUM is not NULL 
 		and (b.LAB_LOINC in ('14647-2','2093-3',
 							'14646-4','18263-4','2085-9',
 							'12951-0','14927-8','2571-8','47210-0',
