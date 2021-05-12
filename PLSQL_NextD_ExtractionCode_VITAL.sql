@@ -17,15 +17,17 @@ drop table NextD_VITAL_FINAL;
 whenever sqlerror exit;
 
 create table NextD_VITAL_FINAL as 
-    select c.PATID,b.VITALID,b.ENCOUNTERID,		
-			b.VITAL_SOURCE,
-			b.HT,
-			b.WT,
-			b.DIASTOLIC,
-			b.SYSTOLIC,
-			b.SMOKING,
-			EXTRACT(year FROM b.MEASURE_DATE) as MEASURE_DATE_YEAR,
-			EXTRACT(month FROM b.MEASURE_DATE) as MEASURE_DATE_MONTH,
+    select c.PATID, '|' as Pipe1,
+    			b.VITALID, '|' as Pipe2,
+			b.ENCOUNTERID, '|' as Pipe3,		
+			b.VITAL_SOURCE, '|' as Pipe4,
+			b.HT, '|' as Pipe5,
+			b.WT, '|' as Pipe6,
+			b.DIASTOLIC, '|' as Pipe7,
+			b.SYSTOLIC, '|' as Pipe8,
+			b.SMOKING, '|' as Pipe9,
+			EXTRACT(year FROM b.MEASURE_DATE) as MEASURE_DATE_YEAR, '|' as Pipe10,
+			EXTRACT(month FROM b.MEASURE_DATE) as MEASURE_DATE_MONTH, '|' as Pipe11,
 			b.MEASURE_DATE-c.FirstVisit as DAYS_from_FirstEncounter_Date,'ENDALONAEND' as lineEND
 from FinalTable1 c 
 join "&&PCORNET_CDM".VITAL b on c.PATID=b.PATID -- provide here the name of PCORI databas
