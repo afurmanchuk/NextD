@@ -42,6 +42,7 @@ select c.PATID,'|' as Pipe,1
 		a.DISCHARGE_DISPOSITION,'|' as Pipe13,
 		a.DISCHARGE_STATUS,'|' as Pipe14,
 		a.ADMITTING_SOURCE,'|' as Pipe15,
+		a.PROVIDERID,
 		a.[PAYER_TYPE_PRIMARY],'|' as Pipe17,
 		a.[PAYER_TYPE_ SECONDARY],'ENDALONAEND' as lineEND
 into #NextD_ENCOUNTER_FINAL
