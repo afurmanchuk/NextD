@@ -16,21 +16,21 @@ set @UpperTimeFrame=22280;--'2020-12-31';
 --set age restrictions:
 declare @UpperAge int; declare @LowerAge int;set @UpperAge=89; set @LowerAge=18;
 ---------------------------------------------------------------------------------------------------------------
-select c.PATID,
-		a.ENCOUNTERID,
-		b.PRESCRIBINGID,
-		b.RXNORM_CUI,
-		year(dateadd(dd,b.RX_ORDER_DATE,'1960-01-01')) as PX_ORDER_DATE_YEAR,
-		month(dateadd(dd,b.RX_ORDER_DATE,'1960-01-01')) as PX_ORDER_DATE_MONTH,
-		b.RX_ORDER_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date1,
-		year(dateadd(dd,b.RX_START_DATE,'1960-01-01')) as RX_START_DATE_YEAR,
-		month(dateadd(dd,b.RX_START_DATE,'1960-01-01')) as PX_START_DATE_MONTH,
-		b.RX_START_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date2,
-		b.RX_PROVIDERID,
-		b.RX_DAYS_SUPPLY,
-		b.RX_REFILLS ,
-		b.RX_BASIS,
-		b.RAW_RX_MED_NAME
+select c.PATID, '|' as Pipe1,
+		a.ENCOUNTERID, '|' as Pipe2,
+		b.PRESCRIBINGID, '|' as Pipe3,
+		b.RXNORM_CUI, '|' as Pipe4,
+		year(dateadd(dd,b.RX_ORDER_DATE,'1960-01-01')) as PX_ORDER_DATE_YEAR, '|' as Pipe5,
+		month(dateadd(dd,b.RX_ORDER_DATE,'1960-01-01')) as PX_ORDER_DATE_MONTH, '|' as Pipe6,
+		b.RX_ORDER_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date1, '|' as Pipe7,
+		year(dateadd(dd,b.RX_START_DATE,'1960-01-01')) as RX_START_DATE_YEAR, '|' as Pipe8,
+		month(dateadd(dd,b.RX_START_DATE,'1960-01-01')) as PX_START_DATE_MONTH, '|' as Pipe9,
+		b.RX_START_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date2, '|' as Pipe10,
+		b.RX_PROVIDERID, '|' as Pipe11,
+		b.RX_DAYS_SUPPLY, '|' as Pipe12,
+		b.RX_REFILLS , '|' as Pipe13,
+		b.RX_BASIS, '|' as Pipe14,
+		b.RAW_RX_MED_NAME,'ENDALONAEND' as lineEND
 into #NextD_PRESCRIBING_FINAL
 from /* provide name of table 1 here: */ #FinalTable1 c 
 join dbo.[ENCOUNTER] a on c.PATID=a.PATID
