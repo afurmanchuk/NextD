@@ -45,7 +45,7 @@ select c.PATID, '|' as Pipe1,
 		a.DISCHARGE_STATUS, '|' as Pipe14,
 		a.ADMITTING_SOURCE, '|' as Pipe15,
 		a.PAYER_TYPE_PRIMARY, '|' as Pipe16,
-		a.PAYER_TYPE_SECONDARY
+		a.PAYER_TYPE_SECONDARY, 'ENDALONAEND' as lineEND
 from FinalTable1 c 
 join "&&PCORNET_CDM".ENCOUNTER a on c.PATID=a.PATID     -- provide here the name of PCORI databas
 join "&&PCORNET_CDM".DEMOGRAPHIC d on c.PATID=d.PATID	-- provide here the name of PCORI databas	
