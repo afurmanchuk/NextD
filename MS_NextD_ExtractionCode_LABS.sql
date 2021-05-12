@@ -20,29 +20,28 @@ set @UpperTimeFrame=22280;--'2020-12-31';
 declare @UpperAge int; declare @LowerAge int;set @UpperAge=89; set @LowerAge=18;
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
---Part2: Labs from CAPRICORN:
-select c.PATID,
-		b.LAB_RESULT_CM_ID,
-		b.ENCOUNTERID,
-		year(dateadd(dd,b.LAB_ORDER_DATE,'1960-01-01')) as LAB_ORDER_DATE_YEAR,
-		month(dateadd(dd,b.LAB_ORDER_DATE,'1960-01-01')) as LAB_ORDER_DATE_MONTH,
-		b.LAB_ORDER_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date1,
-		year(dateadd(dd,b.SPECIMEN_DATE,'1960-01-01')) as SPECIMEN_DATE_YEAR,
-		month(dateadd(dd,b.SPECIMEN_DATE,'1960-01-01')) as SPECIMEN_DATE_MONTH,
-		b.SPECIMEN_ORDER_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date2,
-		b.RESULT_NUM,
-		b.RESULT_UNIT,
-		b.RESULT_QUAL,
-		b.LAB_LOINC,
-		b.LAB_PX,
-		b.LAB_PX_TYPE,
-		b.RESULT_LOC,
-		b.RESULT_MODIFIER,
-		b.NORM_RANGE_LOW,	
-		b.NORM_MODIFIER_LOW, 
-		b.NORM_RANGE_HIGH, 
-		b.NORM_MODIFIER_HIGH, 
-		b.RAW_LAB_NAME
+select c.PATID, '|' as Pipe1,
+		b.LAB_RESULT_CM_ID, '|' as Pipe2,
+		b.ENCOUNTERID, '|' as Pipe3,
+		year(dateadd(dd,b.LAB_ORDER_DATE,'1960-01-01')) as LAB_ORDER_DATE_YEAR, '|' as Pipe4,
+		month(dateadd(dd,b.LAB_ORDER_DATE,'1960-01-01')) as LAB_ORDER_DATE_MONTH, '|' as Pipe5,
+		b.LAB_ORDER_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date1, '|' as Pipe6,
+		year(dateadd(dd,b.SPECIMEN_DATE,'1960-01-01')) as SPECIMEN_DATE_YEAR, '|' as Pipe7,
+		month(dateadd(dd,b.SPECIMEN_DATE,'1960-01-01')) as SPECIMEN_DATE_MONTH, '|' as Pipe8,
+		b.SPECIMEN_ORDER_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date2, '|' as Pipe9,
+		b.RESULT_NUM, '|' as Pipe10,
+		b.RESULT_UNIT, '|' as Pipe11,
+		b.RESULT_QUAL, '|' as Pipe12,
+		b.LAB_LOINC, '|' as Pipe13,
+		b.LAB_PX, '|' as Pipe14,
+		b.LAB_PX_TYPE, '|' as Pipe15,
+		b.RESULT_LOC, '|' as Pipe16,
+		b.RESULT_MODIFIER, '|' as Pipe17,
+		b.NORM_RANGE_LOW, '|' as Pipe18,	
+		b.NORM_MODIFIER_LOW, '|' as Pipe19, 
+		b.NORM_RANGE_HIGH,  '|' as Pipe20,
+		b.NORM_MODIFIER_HIGH,  '|' as Pipe21,
+		b.RAW_LAB_NAME,'ENDALONAEND' as lineEND
 into #NextD_LABS_FINAL
 from /* provide name of table 1 here: */ #FinalTable1 c 
 join [dbo].[LAB_RESULT_CM] b on c.PATID=b.CAP_ID 
