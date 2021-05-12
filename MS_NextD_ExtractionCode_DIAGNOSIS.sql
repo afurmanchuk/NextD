@@ -18,19 +18,19 @@ set @UpperTimeFrame=22280;--'2020-12-31';
 --set age restrictions:
 declare @UpperAge int; declare @LowerAge int;set @UpperAge=89; set @LowerAge=18;
 ---------------------------------------------------------------------------------------------------------------
-select c.PATID,
-		b.ENCOUNTERID,
-		b.DIAGNOSISID,
-		b.DX,
-		b.PDX,
-		b.DX_POA,
-		b.DX_TYPE,
-		b.DX_SOURCE,
-		b.DX_ORIGIN,
-		b.ENC_TYPE,
-		year(dateadd(dd,b.ADMIT_DATE,'1960-01-01')) as ADMIT_DATE_DATE_YEAR,
-		month(dateadd(dd,b.ADMIT_DATE,'1960-01-01')) as ADMIT_DATE_DATE_MONTH,
-		b.ADMIT_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date
+select c.PATID, '|' as Pipe1,
+		b.ENCOUNTERID, '|' as Pipe2,
+		b.DIAGNOSISID, '|' as Pipe3,
+		b.DX, '|' as Pipe4,
+		b.PDX, '|' as Pipe5,
+		b.DX_POA, '|' as Pipe6,
+		b.DX_TYPE, '|' as Pipe7,
+		b.DX_SOURCE, '|' as Pipe8,
+		b.DX_ORIGIN, '|' as Pipe9,
+		b.ENC_TYPE, '|' as Pipe10,
+		year(dateadd(dd,b.ADMIT_DATE,'1960-01-01')) as ADMIT_DATE_DATE_YEAR, '|' as Pipe11,
+		month(dateadd(dd,b.ADMIT_DATE,'1960-01-01')) as ADMIT_DATE_DATE_MONTH, '|' as Pipe12,
+		b.ADMIT_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date,'ENDALONAEND' as lineEND
 into #NextD_DIAGNOSIS_FINAL 
 from /* provide name of table 1 here: */ #FinalTable1 c 
 join  dbo.DIAGNOSIS b on c.PATID=b.PATID 
