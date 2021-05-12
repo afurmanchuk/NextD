@@ -6,13 +6,13 @@
 2. Demographics table from PCORNET.*/
 --------------------------------------------------------------------------------------------------------------- 
 use /*provide here the name of PCORI database here: */PCORI_SAS;
-select c.PATID,
-		year(dateadd(dd,a.BIRTH_DATE,'1960-01-01')) as BIRTH_DATE_YEAR,
-		month(dateadd(dd,a.BIRTH_DATE,'1960-01-01')) as BIRTH_DATE_MONTH,
-		a.BIRTH_DATE-c.FirstVisit as DAYS_from_FirstEncounter_Date,
-		a.SEX,
-		a.RACE,
-		a.HISPANIC 
+select c.PATID, '|' as Pipe1,
+		year(dateadd(dd,a.BIRTH_DATE,'1960-01-01')) as BIRTH_DATE_YEAR, '|' as Pipe2,
+		month(dateadd(dd,a.BIRTH_DATE,'1960-01-01')) as BIRTH_DATE_MONTH, '|' as Pipe3,
+		a.BIRTH_DATE-c.FirstVisit as DAYS_from_FirstEncounter_Date, '|' as Pipe4,
+		a.SEX, '|' as Pipe5,
+		a.RACE, '|' as Pipe6,
+		a.HISPANIC ,'ENDALONAEND' as lineEND
 into #NextD_DEMOGRAPHIC_FINAL
 from /* provide name of table 1 here: */ #FinalTable1 c 
 left join [dbo].[DEMOGRAPHIC] a on c.PATID =a.PATID ;
