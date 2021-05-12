@@ -6,16 +6,12 @@
 1. Table 1 (named here #FinalStatTable1) with Next-D study sample IDs. See separate SQL code for producing this table.
 2. PCORI ENCOUNTER table*/
 --------------------------------------------------------------------------------------------------------------- 
-use /*provide here the name of PCORI database here: */PCORI_SAS;
 --------------------------------------------------------------------------------------------------------------- 
 ----  Declare study time frame variables:
-DECLARE @studyTimeRestriction int;declare @UpperTimeFrame int; declare @LowerTimeFrame int;
------                             Specify time frame and age limits                                       -----
---Set extraction time frame below. If time frames not set, the code will use the whole time frame available from the database
-set @LowerTimeFrame=18263;--'2010-01-01';
-set @UpperTimeFrame=22280;--'2020-12-31';
+-----                             Specify age limits                                       -----
 --set age restrictions:
-declare @UpperAge int; declare @LowerAge int;set @UpperAge=89; set @LowerAge=18;
+define UpperAge=89 
+define LowerAge=18
 ---------------------------------------------------------------------------------------------------------------
 /* Steps for insurance remap (omit if not remapping):
 
@@ -27,30 +23,34 @@ declare @UpperAge int; declare @LowerAge int;set @UpperAge=89; set @LowerAge=18;
 --------------------------------------------------------------------------------------------------------------- 
 --------------------------------------------------------------------------------------------------------------- 
 --------------------------------------------------------------------------------------------------------------- 
-select c.PATID,
-		a.ENCOUNTERID,
-		a.PROVIDERID,
-		year(dateadd(dd,a.ADMIT_DATE,'1960-01-01')) as ADMIT_DATE_YEAR,
-		month(dateadd(dd,a.ADMIT_DATE,'1960-01-01')) as ADMIT_DATE_MONTH,
-		a.ADMIT_DATE - c.[FirstVisit] as DAYS_from_FirstEncounter_Date1,
-		year(dateadd(dd,a.DISCHARGE_DATE,'1960-01-01')) as DISCHARGE_DATE_YEAR,
-		month(dateadd(dd,a.DISCHARGE_DATE,'1960-01-01')) as DISCHARGE_DATE_MONTH,
-		a.ADMIT_DATE - c.[FirstVisit] as DAYS_from_FirstEncounter_Date2,
-		a.ENC_TYPE,
-		a.FACILITYID,
-		a.FACILITY_TYPE,
-		a.DISCHARGE_DISPOSITION,
-		a.DISCHARGE_STATUS,
-		a.ADMITTING_SOURCE,
-		a.PROVIDERID,
-		a.[PAYER_TYPE_PRIMARY],
-		a.[PAYER_TYPE_ SECONDARY]
-into #NextD_ENCOUNTER_FINAL
-from /* provide name of table 1 here: */ #FinalTable1 c 
-join [dbo].[ENCOUNTER] a on c.PATID=a.PATID
-join dbo.DEMOGRAPHIC d on c.PATID=d.PATID		
-where convert(numeric(18,6),(a.ADMIT_DATE-d.BIRTH_DATE))/365.25 between @LowerAge and @UpperAge 
-and a.ADMIT_DATE between @LowerTimeFrame and @UpperTimeFrame; 
+
+whenever sqlerror continue;
+drop table NextD_ENCOUNTER_FINAL; 
+whenever sqlerror exit;
+
+create table NextD_ENCOUNTER_FINAL as 
+select c.PATID, '|' as Pipe1,
+		a.ENCOUNTERID, '|' as Pipe2,
+		a.PROVIDERID, '|' as Pipe3,
+        EXTRACT(year FROM a.ADMIT_DATE) as ADMIT_DATE_YEAR, '|' as Pipe4,
+        EXTRACT(month FROM a.ADMIT_DATE) as ADMIT_DATE_MONTH, '|' as Pipe5,
+		a.ADMIT_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date1, '|' as Pipe6,
+        EXTRACT(year FROM a.DISCHARGE_DATE) as DISCHARGE_DATE_YEAR, '|' as Pipe7,
+        EXTRACT(month FROM a.DISCHARGE_DATE) as DISCHARGE_DATE_MONTH, '|' as Pipe8,
+		a.DISCHARGE_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date2, '|' as Pipe9,
+		a.ENC_TYPE, '|' as Pipe10,
+		a.FACILITYID, '|' as Pipe11,
+		a.FACILITY_TYPE, '|' as Pipe12,
+		a.DISCHARGE_DISPOSITION, '|' as Pipe13,
+		a.DISCHARGE_STATUS, '|' as Pipe14,
+		a.ADMITTING_SOURCE, '|' as Pipe15,
+		a.PAYER_TYPE_PRIMARY, '|' as Pipe16,
+		a.PAYER_TYPE_SECONDARY
+from FinalTable1 c 
+join "&&PCORNET_CDM".ENCOUNTER a on c.PATID=a.PATID     -- provide here the name of PCORI databas
+join "&&PCORNET_CDM".DEMOGRAPHIC d on c.PATID=d.PATID	-- provide here the name of PCORI databas	
+where cast((a.ADMIT_DATE-d.BIRTH_DATE) as numeric(18,6))/365.25 between &LowerAge and &UpperAge 
+and  a.ADMIT_DATE between TO_DATE('2010-01-01', 'YYYY-MM-DD') and TO_DATE('2020-12-31', 'YYYY-MM-DD') ; --Set extraction time frame 
 --------------------------------------------------------------------------------------------------------------- 
 --------------------------------------------------------------------------------------------------------------- 
  /* Save #NextD_ENCOUNTER_FINAL as csv file. 
