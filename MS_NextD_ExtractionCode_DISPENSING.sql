@@ -17,13 +17,15 @@ set @UpperTimeFrame=22280;--'2020-12-31';
 --set age restrictions:
 declare @UpperAge int; declare @LowerAge int;set @UpperAge=89; set @LowerAge=18;
 ---------------------------------------------------------------------------------------------------------------
-select c.PATID,
-		b.DISPENSINGID,
-		b.NDC,
-		year(dateadd(dd,b.DISPENSE_DATE,'1960-01-01')) as DISPENSE_DATE_YEAR,
-		month(dateadd(dd,b.DISPENSE_DATE,'1960-01-01')) as DISPENSE_DATE_MONTH,
-		b.DISPENSE_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date,
-		b.DISPENSE_SUP,b.DISPENSE_AMT,b.RAW_NDC
+select c.PATID, '|' as Pipe1,
+		b.DISPENSINGID, '|' as Pipe2,
+		b.NDC, '|' as Pipe3,
+		year(dateadd(dd,b.DISPENSE_DATE,'1960-01-01')) as DISPENSE_DATE_YEAR, '|' as Pipe4,
+		month(dateadd(dd,b.DISPENSE_DATE,'1960-01-01')) as DISPENSE_DATE_MONTH, '|' as Pipe5,
+		b.DISPENSE_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date, '|' as Pipe6,
+		b.DISPENSE_SUP, '|' as Pipe7,
+		b.DISPENSE_AMT, '|' as Pipe8,
+		b.RAW_NDC,'ENDALONAEND' as lineEND
 into #NextD_DISPENSING_FINAL
 from /* provide name of table 1 here: */ #FinalTable1 c 
 join [dbo].[DISPENSING] b on c.PATID=b.PATID 
