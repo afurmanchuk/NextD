@@ -15,9 +15,9 @@ The table [NextD].[dbo].[NEXT_OriginalNPIFROMBaseTaxonomy] has two columns: [NPI
  */
 ---------------------------------------------------------------------------------------------------------------
 use /*provide here the name of PCORI database here: */PCORI_SAS;
-select a.PROVIDERID,
-	a.PROVIDER_SPECIALTY_PRIMARY,
-	a.PROVIDER_NPI,
+select a.PROVIDERID, '|' as Pipe1,
+	a.PROVIDER_SPECIALTY_PRIMARY, '|' as Pipe2,
+	a.PROVIDER_NPI, '|' as Pipe3,
 case when b.[Healthcare Provider Taxonomy Code_1] is not NULL and b.[Healthcare Provider Taxonomy Code_1] in ('102X00000X','171R00000X','172A00000X','247ZC0005X','367A00000X','374K00000X','374T00000X','376G00000X','390200000X') then '0'
 		when b.[Healthcare Provider Taxonomy Code_1] is not NULL and b.[Healthcare Provider Taxonomy Code_1] in ('202C00000X','202K00000X','204C00000X','204D00000X','204E00000X','204F00000X','204R00000X','207K00000X','207KA0200X','207KI0005X','207L00000X','207LA0401X','207LC0200X',
 					'207LH0002X','207LP2900X','207LP3000X','207N00000X','207ND0101X','207ND0900X','207NI0002X','207NP0225X','207NS0135X','207P00000X','207PE0004X','207PE0005X','207PH0002X','207PP0204X',
@@ -68,7 +68,7 @@ case when b.[Healthcare Provider Taxonomy Code_1] is not NULL and b.[Healthcare 
 					'163WR0400X','163WR1000X','163WS0121X','163WS0200X','163WU0100X','163WW0000X','163WW0101X','163WX0002X','163WX0003X','163WX0106X','163WX0200X','163WX0601X','163WX0800X','163WX1100X',
 					'163WX1500X','164W00000X','164X00000X') then 'OtherProvider'
 		else NULL 
-		end as IndividualProviderCategories
+		end as IndividualProviderCategories,'ENDALONAEND' as lineEND
 		 		
 into #NextD_PROVIDER
 from [dbo].[PROVIDER]  a
