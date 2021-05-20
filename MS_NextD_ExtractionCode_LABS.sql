@@ -14,8 +14,8 @@ use /*provide here the name of PCORI database here: */PCORI_SAS;
 DECLARE @studyTimeRestriction int;declare @UpperTimeFrame int; declare @LowerTimeFrame int;
 -----                             Specify time frame and age limits                                       -----
 --Set extraction time frame below. If time frames not set, the code will use the whole time frame available from the database
-set @LowerTimeFrame=18263;--'2010-01-01';
-set @UpperTimeFrame=22280;--'2020-12-31';
+set @LowerTimeFrame='2010-01-01';
+set @UpperTimeFrame='2020-12-31';
 --set age restrictions:
 declare @UpperAge int; declare @LowerAge int;set @UpperAge=89; set @LowerAge=18;
 ---------------------------------------------------------------------------------------------------------------
@@ -23,12 +23,12 @@ declare @UpperAge int; declare @LowerAge int;set @UpperAge=89; set @LowerAge=18;
 select c.PATID, '|' as Pipe1,
 		b.LAB_RESULT_CM_ID, '|' as Pipe2,
 		b.ENCOUNTERID, '|' as Pipe3,
-		year(dateadd(dd,b.LAB_ORDER_DATE,'1960-01-01')) as LAB_ORDER_DATE_YEAR, '|' as Pipe4,
-		month(dateadd(dd,b.LAB_ORDER_DATE,'1960-01-01')) as LAB_ORDER_DATE_MONTH, '|' as Pipe5,
-		b.LAB_ORDER_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date1, '|' as Pipe6,
-		year(dateadd(dd,b.SPECIMEN_DATE,'1960-01-01')) as SPECIMEN_DATE_YEAR, '|' as Pipe7,
-		month(dateadd(dd,b.SPECIMEN_DATE,'1960-01-01')) as SPECIMEN_DATE_MONTH, '|' as Pipe8,
-		b.SPECIMEN_ORDER_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date2, '|' as Pipe9,
+		year(b.LAB_ORDER_DATE) as LAB_ORDER_DATE_YEAR, '|' as Pipe4,
+		month(b.LAB_ORDER_DATE) as LAB_ORDER_DATE_MONTH, '|' as Pipe5,
+		datediff(dd,c.FirstVisit,b.LAB_ORDER_DATE) as DAYS_from_FirstEncounter_Date1, '|' as Pipe6,
+		year(b.SPECIMEN_DATE) as SPECIMEN_DATE_YEAR, '|' as Pipe7,
+		month(b.SPECIMEN_DATE) as SPECIMEN_DATE_MONTH, '|' as Pipe8,
+		datediff(dd,c.FirstVisit,b.SPECIMEN_ORDER_DATE)  as DAYS_from_FirstEncounter_Date2, '|' as Pipe9,
 		b.RESULT_NUM, '|' as Pipe10,
 		b.RESULT_UNIT, '|' as Pipe11,
 		b.RESULT_QUAL, '|' as Pipe12,
@@ -74,7 +74,7 @@ where b.RESULT_NUM is not NULL
 							'76651-9') 
 		or b.RAW_LAB_NAME in ('A1C','LDL','CREATININE','HGB')
 		)
-		and convert(numeric(18,6),(b.LAB_ORDER_DATE - d.BIRTH_DATE))/365.25 between @LowerAge and @UpperAge 
+		and datediff(yy,d.BIRTH_DATE,b.LAB_ORDER_DATE) between @LowerAge and @UpperAge 
 		and b.LAB_ORDER_DATE between @LowerTimeFrame and @UpperTimeFrame;
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
