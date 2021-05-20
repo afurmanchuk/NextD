@@ -17,8 +17,8 @@ DECLARE @studyTimeRestriction int;declare @UpperTimeFrame int; declare @LowerTim
 -----              In this section User must provide time frame limits    
 ---------------------------------------------------------------------------------------------------------------
 --Set your time frame below. If time frames not set, the code will use the whole time frame available from the database;
-set @LowerTimeFrame=18263;--'2010-01-01';
-set @UpperTimeFrame=22280;--'2020-12-31';
+set @LowerTimeFrame='2010-01-01';
+set @UpperTimeFrame='2020-12-31';
 --set age restrictions:
 declare @UpperAge int; declare @LowerAge int;set @UpperAge=89; set @LowerAge=18;
 ---------------------------------------------------------------------------------------------------------------
@@ -37,15 +37,15 @@ declare @UpperAge int; declare @LowerAge int;set @UpperAge=89; set @LowerAge=18;
 -- Get all encounters for each patient sorted by date:
 select a.PATID, '|' as Pipe1
 	a.ADMIT_DATE as FirstVisit, '|' as Pipe2	
-	year(dateadd(dd,a.ADMIT_DATE,'1960-01-01')) as ADMIT_DATE_YEAR, '|' as Pipe3
-	month(dateadd(dd,a.ADMIT_DATE,'1960-01-01')) as ADMIT_DATE_MONTH,'ENDALONAEND' as lineEND
+	year(a.ADMIT_DATE) as ADMIT_DATE_YEAR, '|' as Pipe3
+	month(a.ADMIT_DATE) as ADMIT_DATE_MONTH,'ENDALONAEND' as lineEND
 into #FinalTable1
 from(select e.PATID,e.ADMIT_DATE,row_number() over (partition by e.PATID order by e.ADMIT_DATE asc) rn 
 	from dbo.ENCOUNTER e 
 	join dbo.DEMOGRAPHIC d on e.PATID=d.PATID
 	where d.BIRTH_DATE is not NULL 
 		and e.ENC_TYPE in ('IP','ED','EI','TH','OS','AV','IS')
-		and convert(numeric(18,6),(e.ADMIT_DATE - d.BIRTH_DATE))/365.25 between @LowerAge and @UpperAge 
+		and datediff(yy,d.BIRTH_DATE,e.ADMIT_DATE) between @LowerAge and @UpperAge 
 		and e.ADMIT_DATE between @LowerTimeFrame and  @UpperTimeFrame
 	) a
 where a.rn=1;
