@@ -9,9 +9,9 @@
 ---------------------------------------------------------------------------------------------------------------
 use /*provide here the name of PCORI database here: */PCORI_SAS;
 select c.PATID, '|' as Pipe1,
-			year(dateadd(dd,b.DEATH_DATE,'1960-01-01')) as DEATH_DATE_YEAR, '|' as Pipe2,
-			month(dateadd(dd,b.DEATH_DATE,'1960-01-01')) as DEATH_DATE_MONTH, '|' as Pipe3,
-			b.DEATH_DATE-c.FirstVisit as DAYS_from_FirstEncounter_Date, '|' as Pipe4,
+			year(b.DEATH_DATE) as DEATH_DATE_YEAR, '|' as Pipe2,
+			month(b.DEATH_DATE) as DEATH_DATE_MONTH, '|' as Pipe3,
+			datediff(d,c.FirstVisit, b.DEATH_DATE) as DAYS_from_FirstEncounter_Date, '|' as Pipe4,
 			b.DEATH_SOURCE,'ENDALONAEND' as lineEND 
 into #NextD_DEATH_FINAL
 from /* provide name of table 1 here: */ #FinalTable1 c 
