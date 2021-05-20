@@ -7,9 +7,9 @@
 --------------------------------------------------------------------------------------------------------------- 
 use /*provide here the name of PCORI database here: */PCORI_SAS;
 select c.PATID, '|' as Pipe1,
-		year(dateadd(dd,a.BIRTH_DATE,'1960-01-01')) as BIRTH_DATE_YEAR, '|' as Pipe2,
-		month(dateadd(dd,a.BIRTH_DATE,'1960-01-01')) as BIRTH_DATE_MONTH, '|' as Pipe3,
-		a.BIRTH_DATE-c.FirstVisit as DAYS_from_FirstEncounter_Date, '|' as Pipe4,
+		year(a.BIRTH_DATE) as BIRTH_DATE_YEAR, '|' as Pipe2,
+		month(a.BIRTH_DATE) as BIRTH_DATE_MONTH, '|' as Pipe3,
+		datediff(d,c.FirstVisit,a.BIRTH_DATE) as DAYS_from_FirstEncounter_Date, '|' as Pipe4,
 		a.SEX, '|' as Pipe5,
 		a.RACE, '|' as Pipe6,
 		a.HISPANIC ,'ENDALONAEND' as lineEND
