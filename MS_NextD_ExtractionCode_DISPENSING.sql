@@ -22,7 +22,7 @@ select c.PATID, '|' as Pipe1,
 		b.NDC, '|' as Pipe3,
 		year(b.DISPENSE_DATE) as DISPENSE_DATE_YEAR, '|' as Pipe4,
 		month(b.DISPENSE_DATE) as DISPENSE_DATE_MONTH, '|' as Pipe5,
-		datediff(dd,c.FirstVisit, b.DISPENSE_DATE)  as DAYS_from_FirstEncounter_Date, '|' as Pipe6,
+		datediff(d,c.FirstVisit, b.DISPENSE_DATE)  as DAYS_from_FirstEncounter_Date, '|' as Pipe6,
 		b.DISPENSE_SUP, '|' as Pipe7,
 		b.DISPENSE_AMT, '|' as Pipe8,
 		b.RAW_NDC,'ENDALONAEND' as lineEND
