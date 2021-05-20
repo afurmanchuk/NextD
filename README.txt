@@ -168,13 +168,5 @@ Table produced:
 +NextD_DEATH_CAUSE_FINAL
 
 /*********************************************************************/
-Script name: MS_NextD_ExtractionCode_DISPENSING.sql or PLSQL_NextD_ExtractionCode_DISPENSING.sql
-Execution order: 2.*
-Tables required: 
-+FinalTable1
-+DISPENSING
-+DEMOGRAPHIC
 
-Table produced:
-+NextD_DISPENSING_FINAL
 
