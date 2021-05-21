@@ -11,7 +11,7 @@
 ---------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------
 /*use code below if you are member of GPC consortium:*/
-select c.PATID, '|' as Pipe1,b.GTRACT_ACS ,, '|' as Pipe2, LOCATOR, '|' as Pipe3, SCORE, '|' as Pipe4,DEGAUSS,'ENDALONAEND' as lineEND
+select c.PATID, '|' as Pipe1,b.GTRACT_ACS , '|' as Pipe2, LOCATOR, '|' as Pipe3, SCORE, '|' as Pipe4,DEGAUSS,'ENDALONAEND' as lineEND
 into #NextD_SES
 from /* provide name of table 1 here: */ #FinalTable1 c 
 left join /* provide name of non-PCORNET table with SES data here: */ #SES b on c.PATID=b.PATID;
