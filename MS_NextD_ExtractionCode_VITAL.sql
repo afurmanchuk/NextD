@@ -31,7 +31,7 @@ into #NextD_VITAL_FINAL
 from /* provide name of table 1 here: */ #FinalTable1 c 
 join /* provide name of PCORNET table VITAL here: */  [dbo].[VITAL] b on c.PATID=b.PATID
 join /* provide name of PCORNET table DEMOGRAPPHIC here: */ [dbo].[DEMOGRAPHIC] d on c.PATID=d.PATID 
-where  cdatediff(yy,d.BIRTH_DATE,b.MEASURE_DATE) between @LowerAge and @UpperAge 
+where  datediff(yy,d.BIRTH_DATE,b.MEASURE_DATE) between @LowerAge and @UpperAge 
 	and b.MEASURE_DATE between @LowerTimeFrame and @UpperTimeFrame;
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
