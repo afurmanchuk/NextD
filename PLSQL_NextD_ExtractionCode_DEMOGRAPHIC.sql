@@ -16,7 +16,7 @@ create table NextD_DEMOGRAPHIC_FINAL as
 		a.BIRTH_DATE-c.FirstVisit as DAYS_from_FirstEncounter_Date, '|' as PIPIE4,
 		a.SEX, '|' as PIPIE5,
 		a.RACE, '|' as PIPIE6,
-		a.HISPANIC,'ENDALONAEND' as lineEND
+		a.HISPANIC
 from FinalTable1 c 
 left join "&&PCORNET_CDM".DEMOGRAPHIC a on c.PATID =a.PATID ;
 --------------------------------------------------------------------------------------------------------------- 
