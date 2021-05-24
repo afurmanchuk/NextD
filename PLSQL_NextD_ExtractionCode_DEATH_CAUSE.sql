@@ -18,7 +18,7 @@ create table NextD_DEATH_CAUSE_FINAL as
 		b.DEATH_CAUSE_CODE ,'|' as PIPIE3,
 		b.DEATH_CAUSE_TYPE , '|' as PIPIE4,
 		b.DEATH_CAUSE_SOURCE , '|' as PIPIE5,
-		b.DEATH_CAUSE_CONFIDENCE ,'ENDALONAEND' as lineEND
+		b.DEATH_CAUSE_CONFIDENCE 
 from FinalTable1 c 
 left join "&&PCORNET_CDM".DEATH_CAUSE b on c.PATID=b.PATID; -- provide here the name of PCORI databas
 ---------------------------------------------------------------------------------------------------------------
