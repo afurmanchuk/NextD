@@ -77,7 +77,7 @@ case when b.Provider_Taxonomy_Code_1 in ('102X00000X','171R00000X','172A00000X',
 					'163WX1500X','164W00000X','164X00000X') 
                     then 'OtherProvider'
 		else NULL 
-		end as IndividualProviderCategories,'ENDALONAEND' as lineEND
+		end as IndividualProviderCategories
     from "&&PCORNET_CDM".PROVIDER  a -- provide here the name of PCORI databas
 left join OriginalNPIFROMBaseTaxonomy b on a.PROVIDER_NPI=b.NPI ;  
 ---------------------------------------------------------------------------------------------------------------
