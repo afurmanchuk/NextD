@@ -9,7 +9,9 @@
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
 ----  Declare study time frame variables:
------                             Specify age limits                                       -----
+--Set your time frame below between '2010-01-01' and '2020-12-31'. If time frames not set, the code will use the whole time frame available from the database;
+define LowerTimeFrame= TO_DATE('2010-01-01' , 'YYYY-MM-DD') 
+define UpperTimeFrame= TO_DATE('2020-12-31', 'YYYY-MM-DD')
 --set age restrictions:
 define UpperAge=89 
 define LowerAge=18
@@ -35,12 +37,12 @@ create table NextD_PROCEDURES_FINAL as
 	b.PX, '|' as Pipe12,
 	b.PPX, '|' as Pipe13,
 	b.PX_TYPE, '|' as Pipe14,
-	b.PX_SOURCE,'ENDALONAEND' as lineEND
+	b.PX_SOURCE
 from FinalTable1 c 
 join "&&PCORNET_CDM".PROCEDURES b on c.PATID=b.PATID   -- provide here the name of PCORI databas
 join "&&PCORNET_CDM".DEMOGRAPHIC d on c.PATID=d.PATID  -- provide here the name of PCORI databas
 where cast((b.ADMIT_DATE - d.BIRTH_DATE) as numeric(18,6))/365.25 between &LowerAge and &UpperAge 
-	and b.ADMIT_DATE between TO_DATE('2010-01-01', 'YYYY-MM-DD') and TO_DATE('2020-12-31', 'YYYY-MM-DD') ; --Set extraction time frame 
+	and b.ADMIT_DATE between &LowerTimeFrame and &UpperTimeFrame ; --Set extraction time frame 
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
 /* Save #NextD_PROCEDURES_FINAL as csv file. 
