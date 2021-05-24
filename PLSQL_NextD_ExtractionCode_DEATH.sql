@@ -16,7 +16,7 @@ create table NextD_DEATH_FINAL as
 			EXTRACT(year FROM b.DEATH_DATE) as DEATH_DATE_YEAR, '|' as Pipe2,
 			EXTRACT(month FROM b.DEATH_DATE) as DEATH_DATE_MONTH, '|' as Pipe3,
 			b.DEATH_DATE-c.FirstVisit as DAYS_from_FirstEncounter_Date, '|' as Pipe4,
-			b.DEATH_SOURCE,'ENDALONAEND' as lineEND
+			b.DEATH_SOURCE
 from FinalTable1 c 
 left join "&&PCORNET_CDM".DEATH b on c.PATID=b.PATID; -- provide here the name of PCORI databas
 ---------------------------------------------------------------------------------------------------------------
