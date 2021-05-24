@@ -11,8 +11,8 @@
 -----                            Declare study time frame variables:                                      -----
 ---------------------------------------------------------------------------------------------------------------
 --Set your time frame below between '2010-01-01' and '2020-12-31'. If time frames not set, the code will use the whole time frame available from the database;
-define LowerTimeFrame=18263 
-define UpperTimeFrame=22280 
+define LowerTimeFrame= TO_DATE('2010-01-01' , 'YYYY-MM-DD') 
+define UpperTimeFrame= TO_DATE('2020-12-31', 'YYYY-MM-DD')
 --set age restrictions:
 define UpperAge=89 
 define LowerAge=18
@@ -34,12 +34,12 @@ create table NextD_DIAGNOSIS_FINAL as
 		b.ENC_TYPE, '|' as Pipe10,
 		EXTRACT(year FROM b.ADMIT_DATE) as ADMIT_DATE_DATE_YEAR, '|' as Pipe11,
 		EXTRACT(month FROM b.ADMIT_DATE) as ADMIT_DATE_DATE_MONTH, '|' as Pipe12,
-		b.ADMIT_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date,'ENDALONAEND' as lineEND
+		b.ADMIT_DATE - c.FirstVisit as DAYS_from_FirstEncounter_Date
 from  FinalTable1 c 
 join  "&&PCORNET_CDM".DIAGNOSIS b on c.PATID=b.PATID    -- provide here the name of PCORI databas
 join  "&&PCORNET_CDM".DEMOGRAPHIC d on c.PATID=d.PATID  -- provide here the name of PCORI databas
 where cast((b.ADMIT_DATE-d.BIRTH_DATE) as numeric(18,6))/365.25 between &LowerAge and &UpperAge 
-	and b.ADMIT_DATE - TO_DATE('1960/01/01', 'YYYY/MM/DD') between &LowerTimeFrame and &UpperTimeFrame;
+	and b.ADMIT_DATE between &LowerTimeFrame and &UpperTimeFrame;
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
 /* Save #NextD_DIAGNOSIS_FINAL as csv file. 
