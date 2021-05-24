@@ -8,7 +8,9 @@
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
 ----  Declare study time frame variables:
------                             Specify age limits                                       -----
+--Set your time frame below between '2010-01-01' and '2020-12-31'. If time frames not set, the code will use the whole time frame available from the database;
+define LowerTimeFrame= TO_DATE('2010-01-01' , 'YYYY-MM-DD') 
+define UpperTimeFrame= TO_DATE('2020-12-31', 'YYYY-MM-DD')
 --set age restrictions:
 define UpperAge=89 
 define LowerAge=18
@@ -31,7 +33,7 @@ from FinalTable1 c
 join "&&PCORNET_CDM".DISPENSING b on c.PATID=b.PATID    -- provide here the name of PCORI databas
 join "&&PCORNET_CDM".DEMOGRAPHIC d on c.PATID=d.PATID       -- provide here the name of PCORI databas
 where cast((b.DISPENSE_DATE -d.BIRTH_DATE) as numeric(18,6))/365.25 between &LowerAge and &UpperAge  
-	and b.DISPENSE_DATE between TO_DATE('2010-01-01', 'YYYY-MM-DD') and TO_DATE('2020-12-31', 'YYYY-MM-DD') ; --Set extraction time frame 
+	and b.DISPENSE_DATE between &LowerTimeFrame and &UpperTimeFrame ; --Set extraction time frame 
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
 /* Save #NextD_DISPENSING_FINAL as csv file. 
