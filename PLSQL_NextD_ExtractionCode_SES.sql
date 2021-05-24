@@ -24,7 +24,7 @@ select
     amap.FIPS11 as GTRACT_ACS, '|' as Pipe3,
     amap.LOCATOR,  '|' as Pipe4,
     amap.SCORE,  '|' as Pipe5,
-    1 as DeGAUSS,'ENDALONAEND' as lineEND
+    1 as DeGAUSS
 from  FinalTable1 c
 left join /*provide patient_dimension table here - KUMC-specific*/ (select patient_num, to_char(mrn) as mrn_char from nightherondata.patient_dimension) pd on c.PATID = pd.patient_num
 left join /* provide name of non-PCORNET table with SES data here: */ (select addm.*, to_char(mrn) as mrn_char from xsong.address_mapped addm) amap on amap.mrn_char = pd.mrn_char;
