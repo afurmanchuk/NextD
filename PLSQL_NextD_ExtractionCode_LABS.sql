@@ -11,11 +11,16 @@
 ---------------------------------------------------------------------------------------------------------------
 ----  Declare study time frame variables:
 -----                             Specify age limits                                       -----
+--Set your time frame below between '2010-01-01' and '2020-12-31'. If time frames not set, the code will use the whole time frame available from the database;
+define LowerTimeFrame= TO_DATE('2010-01-01' , 'YYYY-MM-DD') 
+define UpperTimeFrame= TO_DATE('2020-12-31', 'YYYY-MM-DD')
 --set age restrictions:
 define UpperAge=89 
 define LowerAge=18
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
+--Part2: Labs from CAPRICORN:
+
 whenever sqlerror continue;
 drop table NextD_LABS_FINAL; 
 whenever sqlerror exit;
@@ -42,7 +47,7 @@ create table NextD_LABS_FINAL as
 		b.NORM_MODIFIER_LOW, '|' as Pipe19,
 		b.NORM_RANGE_HIGH, '|' as Pipe20,
 		b.NORM_MODIFIER_HIGH, '|' as Pipe21,
-		b.RAW_LAB_NAME,'ENDALONAEND' as lineEND
+		b.RAW_LAB_NAME
 from FinalTable1 c 
 join "&&PCORNET_CDM".LAB_RESULT_CM b on c.PATID=b.PATID   -- provide here the name of PCORI databas
 join "&&PCORNET_CDM".DEMOGRAPHIC d on c.PATID=d.PATID   -- provide here the name of PCORI databas
@@ -76,7 +81,7 @@ b.RESULT_NUM is not NULL and
 		or b.RAW_LAB_NAME in ('A1C','LDL','CREATININE','HGB')
 		)
 		and cast((b.LAB_ORDER_DATE - d.BIRTH_DATE) as numeric(18,6))/365.25 between &LowerAge and &UpperAge 
-		and b.LAB_ORDER_DATE between TO_DATE('2010-01-01', 'YYYY-MM-DD') and TO_DATE('2020-12-31', 'YYYY-MM-DD') ; --Set extraction time frame 
+		and b.LAB_ORDER_DATE between &LowerTimeFrame and &UpperTimeFrame ; --Set extraction time frame 
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
