@@ -18,9 +18,9 @@
 ---------------------------------------------------------------------------------------------------------------
 -----              In this section User must provide time frame limits    
 ---------------------------------------------------------------------------------------------------------------
---Set your time frame below between '2010-01-01' and '2020-12-31' in SAS date. If time frames not set, the code will use the whole time frame available from the database;
-define LowerTimeFrame=18263 
-define UpperTimeFrame=22280 
+--Set your time frame below between '2010-01-01' and '2020-12-31'. If time frames not set, the code will use the whole time frame available from the database;
+define LowerTimeFrame= TO_DATE('2010-01-01' , 'YYYY-MM-DD') 
+define UpperTimeFrame= TO_DATE('2020-12-31', 'YYYY-MM-DD')
 --set age restrictions:
 define UpperAge=89 
 define LowerAge=18
@@ -48,7 +48,7 @@ select
     a.PATID, '|' as Pipe1,
 	a.ADMIT_DATE as FirstVisit, '|' as Pipe2,
     EXTRACT(year FROM a.ADMIT_DATE) as ADMIT_DATE_YEAR, '|' as Pipe3,
-    EXTRACT(month FROM a.ADMIT_DATE) as ADMIT_DATE_MONTH,'ENDALONAEND' as lineEND
+    EXTRACT(month FROM a.ADMIT_DATE) as ADMIT_DATE_MONTH
     from
     (
     select e.PATID,
@@ -59,7 +59,7 @@ select
 	where d.BIRTH_DATE is not NULL 
 		and e.ENC_TYPE in ('IP','ED','EI','TH','OS','AV','IS')
 		and cast((e.ADMIT_DATE - d.BIRTH_DATE) as numeric(18,6))/365.25 between &LowerAge and &UpperAge 
-		and e.ADMIT_DATE - TO_DATE('1960/01/01', 'YYYY/MM/DD') between &LowerTimeFrame and &UpperTimeFrame
+		and e.ADMIT_DATE between &LowerTimeFrame and &UpperTimeFrame
 	) a
 where a.rn=1;
 ---------------------------------------------------------------------------------------------------------------
